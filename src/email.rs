@@ -166,6 +166,14 @@ pub struct BookingDetails {
     /// round-robin mode, attached resources in 'all' mode). Rendered in
     /// host-facing emails only; guests do not see internal resource names.
     pub resource_name: Option<String>,
+    pub business_name: Option<String>,
+    pub business_address: Option<String>,
+    pub business_phone: Option<String>,
+    pub tax_number: Option<String>,
+    pub prices_include_tax: bool,
+    pub deposit_amount: Option<f64>,
+    pub deposit_recipient_email: Option<String>,
+    pub cancellation_policy: Option<String>,
 }
 
 #[derive(Default)]
@@ -288,7 +296,7 @@ fn render_html_email_with_actions(
     <!-- Footer -->
     <tr><td style="padding:16px 28px;border-top:1px solid #f0f0f3;text-align:center;">
       <span style="font-size:12px;color:#9ca3af;">Sent by </span>
-      <a href="https://cal.rs" style="font-size:12px;color:#6b7280;font-weight:600;text-decoration:none;">calrs</a>
+      <a href="https://github.com/pal404error/calrs" style="font-size:12px;color:#6b7280;font-weight:600;text-decoration:none;">TrueNorth Bookings</a>
     </td></tr>
   </table>
 </td></tr>
@@ -751,6 +759,30 @@ pub async fn send_guest_confirmation_ex(
         )
     });
 
+    let mut vendor_plain = String::new();
+    if let (Some(deposit), Some(email)) = (details.deposit_amount, &details.deposit_recipient_email) {
+        vendor_plain.push_str(&format!("Deposit: ${:.2} CAD via Interac e-Transfer to {}\n", deposit, email));
+    }
+    if let Some(biz) = &details.business_name {
+        vendor_plain.push_str(&format!("Business: {}\n", biz));
+    }
+    if let Some(addr) = &details.business_address {
+        vendor_plain.push_str(&format!("Address: {}\n", addr));
+    }
+    if let Some(phone) = &details.business_phone {
+        vendor_plain.push_str(&format!("Phone: {}\n", phone));
+    }
+    if let Some(tax) = &details.tax_number {
+        if details.prices_include_tax {
+            vendor_plain.push_str(&format!("GST/HST: {} (Prices include GST/HST)\n", tax));
+        } else {
+            vendor_plain.push_str(&format!("GST/HST: {}\n", tax));
+        }
+    }
+    if let Some(policy) = &details.cancellation_policy {
+        vendor_plain.push_str(&format!("Cancellation Policy: {}\n", policy));
+    }
+
     let plain = format!(
         "{}\n\n\
          {}\n\n\
@@ -758,7 +790,7 @@ pub async fn send_guest_confirmation_ex(
          {} {}\n\
          {} {}\n\
          {} {}\n\
-         {}{}\
+         {}{}{}\
          {}\n\
          {}{}{}\
          {}",
@@ -782,6 +814,7 @@ pub async fn send_guest_confirmation_ex(
             .as_ref()
             .map(|n| format!("{} {}\n", label_notes, n))
             .unwrap_or_default(),
+        vendor_plain,
         ics_attached_plain,
         reschedule_notice_line
             .as_ref()
@@ -828,6 +861,47 @@ pub async fn send_guest_confirmation_ex(
         rows.push(EmailRow {
             label: label_notes.clone(),
             value: notes.clone(),
+        });
+    }
+    if let (Some(deposit), Some(email)) = (details.deposit_amount, &details.deposit_recipient_email) {
+        rows.push(EmailRow {
+            label: "Deposit".to_string(),
+            value: format!("${:.2} CAD (Interac e-Transfer to {})", deposit, email),
+        });
+    }
+    if let Some(biz) = &details.business_name {
+        rows.push(EmailRow {
+            label: "Business".to_string(),
+            value: biz.clone(),
+        });
+    }
+    if let Some(addr) = &details.business_address {
+        rows.push(EmailRow {
+            label: "Address".to_string(),
+            value: addr.clone(),
+        });
+    }
+    if let Some(phone) = &details.business_phone {
+        rows.push(EmailRow {
+            label: "Phone".to_string(),
+            value: phone.clone(),
+        });
+    }
+    if let Some(tax) = &details.tax_number {
+        let tax_val = if details.prices_include_tax {
+            format!("{} (Prices include GST/HST)", tax)
+        } else {
+            tax.clone()
+        };
+        rows.push(EmailRow {
+            label: "GST/HST #".to_string(),
+            value: tax_val,
+        });
+    }
+    if let Some(policy) = &details.cancellation_policy {
+        rows.push(EmailRow {
+            label: "Cancellation Policy".to_string(),
+            value: policy.clone(),
         });
     }
 
@@ -907,7 +981,7 @@ pub async fn send_guest_confirmation_ex(
              Organizer: {}\n\
              Booked by: {} <{}>\n\n\
              A calendar invite is attached.\n\n\
-             \u{2014} calrs",
+             \u{2014} TrueNorth Bookings",
             details.event_title,
             details.date,
             details.start_time,
@@ -992,7 +1066,7 @@ pub async fn send_host_notification(config: &SmtpConfig, details: &BookingDetail
          Guest: {} <{}>\n\
          {}{}{}\n\
          A calendar invite is attached.\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         date_display,
         time_display,
@@ -1108,7 +1182,7 @@ pub async fn send_host_booking_confirmed(
          Guest: {} <{}>\n\
          {}\
          The event has been added to your calendar.\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         date_display,
         time_display,
@@ -1203,7 +1277,7 @@ pub async fn send_host_calendar_sync_failure(
     let action = "Open the event in Google Calendar and move it to the time above. \
                   Move the existing event rather than recreating it, or the Google Meet \
                   link the guest already has stops working.";
-    let intro = "This booking moved, but calrs could not update the event on your Google \
+    let intro = "This booking moved, but TrueNorth Bookings could not update the event on your Google \
                  Calendar. The guest has the new time; your calendar still shows the old one.";
 
     let plain = format!(
@@ -1215,7 +1289,7 @@ pub async fn send_host_calendar_sync_failure(
          Guest: {} <{}>\n\
          Reason: {}\n\n\
          {}\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         intro,
         details.event_title,
         date_display,
@@ -1408,7 +1482,7 @@ pub async fn send_host_reminder(config: &SmtpConfig, details: &BookingDetails) -
          Time: {}\n\
          Guest: {} <{}>\n\
          {}\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         date_display,
         time_display,
@@ -1633,7 +1707,7 @@ pub async fn send_host_cancellation(
          Guest: {} <{}>\n\n\
          {}\
          A calendar cancellation is attached.\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         date_display,
         time_display,
@@ -1724,6 +1798,30 @@ pub async fn send_guest_pending_notice_ex(
         details.start_time, details.end_time, details.guest_timezone
     );
 
+    let mut vendor_plain = String::new();
+    if let (Some(deposit), Some(email)) = (details.deposit_amount, &details.deposit_recipient_email) {
+        vendor_plain.push_str(&format!("Deposit: Send a ${:.2} CAD deposit via Interac e-Transfer to {} to confirm.\n\n", deposit, email));
+    }
+    if let Some(biz) = &details.business_name {
+        vendor_plain.push_str(&format!("Business: {}\n", biz));
+    }
+    if let Some(addr) = &details.business_address {
+        vendor_plain.push_str(&format!("Address: {}\n", addr));
+    }
+    if let Some(phone) = &details.business_phone {
+        vendor_plain.push_str(&format!("Phone: {}\n", phone));
+    }
+    if let Some(tax) = &details.tax_number {
+        if details.prices_include_tax {
+            vendor_plain.push_str(&format!("GST/HST: {} (Prices include GST/HST)\n", tax));
+        } else {
+            vendor_plain.push_str(&format!("GST/HST: {}\n", tax));
+        }
+    }
+    if let Some(policy) = &details.cancellation_policy {
+        vendor_plain.push_str(&format!("Cancellation Policy: {}\n", policy));
+    }
+
     // Don't include location in pending emails — it should only be revealed
     // after the booking is confirmed (prevents meeting link leaking).
     let plain = format!(
@@ -1732,10 +1830,10 @@ pub async fn send_guest_pending_notice_ex(
          Event: {}\n\
          Date: {}\n\
          Time: {}\n\
-         {}\
+         {}{}\
          You'll receive another email once it's confirmed.\n\
          {}\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.guest_name,
         details.host_name,
         details.event_title,
@@ -1746,6 +1844,7 @@ pub async fn send_guest_pending_notice_ex(
             .as_ref()
             .map(|n| format!("Notes: {}\n", n))
             .unwrap_or_default(),
+        vendor_plain,
         cancel_url
             .map(|u| format!("\nNeed to cancel? {}\n", u))
             .unwrap_or_default(),
@@ -1773,6 +1872,47 @@ pub async fn send_guest_pending_notice_ex(
         rows.push(EmailRow {
             label: "Notes".to_string(),
             value: notes.clone(),
+        });
+    }
+    if let (Some(deposit), Some(email)) = (details.deposit_amount, &details.deposit_recipient_email) {
+        rows.push(EmailRow {
+            label: "Deposit ($ CAD)".to_string(),
+            value: format!("Send a ${:.2} CAD deposit via Interac e-Transfer to {} to confirm.", deposit, email),
+        });
+    }
+    if let Some(biz) = &details.business_name {
+        rows.push(EmailRow {
+            label: "Business".to_string(),
+            value: biz.clone(),
+        });
+    }
+    if let Some(addr) = &details.business_address {
+        rows.push(EmailRow {
+            label: "Address".to_string(),
+            value: addr.clone(),
+        });
+    }
+    if let Some(phone) = &details.business_phone {
+        rows.push(EmailRow {
+            label: "Phone".to_string(),
+            value: phone.clone(),
+        });
+    }
+    if let Some(tax) = &details.tax_number {
+        let tax_val = if details.prices_include_tax {
+            format!("{} (Prices include GST/HST)", tax)
+        } else {
+            tax.clone()
+        };
+        rows.push(EmailRow {
+            label: "GST/HST #".to_string(),
+            value: tax_val,
+        });
+    }
+    if let Some(policy) = &details.cancellation_policy {
+        rows.push(EmailRow {
+            label: "Cancellation Policy".to_string(),
+            value: policy.clone(),
         });
     }
 
@@ -1866,7 +2006,7 @@ pub async fn send_host_approval_request(
          Guest: {} <{}>\n\
          {}{}\n\
          {}\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         date_display,
         time_display,
@@ -1990,7 +2130,7 @@ pub async fn send_guest_decline_notice(
          Time: {}\n\
          With: {}\n\n\
          {}\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.guest_name,
         details.event_title,
         details.date,
@@ -2286,11 +2426,11 @@ pub async fn load_smtp_status(pool: &SqlitePool) -> Result<Option<SmtpStatus>> {
 pub async fn send_test_email(config: &SmtpConfig, to_email: &str) -> Result<()> {
     let to = to_email.parse()?;
 
-    let plain = "This is a test email from calrs. SMTP is working!".to_string();
+    let plain = "This is a test email from TrueNorth Bookings. SMTP is working!".to_string();
 
     let html = render_html_email(
         "SMTP test",
-        "This is a test email from calrs. SMTP is working!",
+        "This is a test email from TrueNorth Bookings. SMTP is working!",
         "#6366f1",
         &[],
         None,
@@ -2301,7 +2441,7 @@ pub async fn send_test_email(config: &SmtpConfig, to_email: &str) -> Result<()> 
     let email = Message::builder()
         .from(config.mailbox_from()?)
         .to(to)
-        .subject("calrs \u{2014} SMTP test")
+        .subject("TrueNorth Bookings \u{2014} SMTP test")
         .multipart(body)?;
 
     // Debug is only useful when sending a test email
@@ -2338,7 +2478,7 @@ pub async fn send_invite_email(
          Click the link below to choose a time:\n\
          {}\n\
          {}\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         guest_name, host_name, event_title, message_note, invite_url, expiry_note,
     );
 
@@ -2507,7 +2647,7 @@ pub async fn send_guest_pick_new_time(
          Originally: {} at {}\n\n\
          Please pick a new time: {}\n\
          {}\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.guest_name,
         details.host_name,
         details.event_title,
@@ -2617,7 +2757,7 @@ pub async fn send_guest_reschedule_notification(
          {}\
          An updated calendar invite is attached.\n\
          {}{}\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.guest_name,
         details.host_name,
         details.event_title,
@@ -2772,7 +2912,7 @@ pub async fn send_host_reschedule_request(
          Guest: {} <{}>\n\
          {}\n\n\
          {}\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.guest_name,
         details.event_title,
         old_date_display,
@@ -2873,7 +3013,7 @@ pub async fn send_watcher_claim_notification(
          Assigned to: {}\n\
          {}\
          Claim this booking: {}\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         details.date,
         time_display,
@@ -2964,7 +3104,7 @@ pub async fn send_claim_confirmation(
          Guest: {} <{}>\n\
          {}\
          A calendar invite has been sent.\n\n\
-         \u{2014} calrs",
+         \u{2014} TrueNorth Bookings",
         details.event_title,
         details.date,
         time_display,
@@ -3803,7 +3943,7 @@ mod tests {
         assert!(html.contains("Intro Call"));
         assert!(html.contains("2026-03-10"));
         assert!(html.contains("Calendar invite attached."));
-        assert!(html.contains("calrs")); // footer branding
+        assert!(html.contains("TrueNorth Bookings")); // footer branding
     }
 
     #[test]
@@ -5470,7 +5610,7 @@ mod tests {
         assert!(html.contains("https://cal.rs/reschedule/abc"));
         assert!(html.contains("https://cal.rs/cancel/def"));
         assert!(html.contains("#16a34a")); // accent
-        assert!(html.contains("calrs")); // footer branding
+        assert!(html.contains("TrueNorth Bookings")); // footer branding
     }
 
     // --- build_multipart_body tests ---
@@ -6349,8 +6489,8 @@ mod tests {
     #[test]
     fn html_email_has_calrs_footer_link() {
         let html = render_html_email("Hi,", "Test", "#000", &[], None);
-        assert!(html.contains("https://cal.rs"));
-        assert!(html.contains("calrs"));
+        assert!(html.contains("https://github.com/pal404error/calrs"));
+        assert!(html.contains("TrueNorth Bookings"));
     }
 
     // --- Cancellation email body tests ---

@@ -171,7 +171,7 @@ action-error-page-title = Viga broneeringu toimingus
 
 # Host-initiated reschedule (booking_host_reschedule.html)
 
-host-resched-page-title = Muuda broneeringu aega — calrs
+host-resched-page-title = Muuda broneeringu aega — TrueNorth Bookings
 host-resched-heading = Muuda broneeringu aega
 host-resched-subtitle = See saadab külalisele { $guest } e-kirja palvega valida uus aeg.
 host-resched-currently = Praegu:
@@ -235,7 +235,7 @@ common-format-long-date = { $weekday }, { $day }. { $month } { $year }
 
 # Email signatures and shared bits (src/email.rs)
 
-email-signature = — calrs
+email-signature = — TrueNorth Bookings
 email-action-reschedule = Muuda aega
 email-action-cancel-booking = Tühista broneering
 
@@ -593,7 +593,7 @@ source-test-heading = Ühenduse test
 source-write-page-title = Seadista kalendrisse kirjutamine
 source-write-back = Tagasi töölauale
 source-write-heading = Kuhu peaksid broneeringud minema?
-source-write-help = Kui keegi broneerib sinuga kohtumise, saab calrs sündmuse automaatselt sinu kalendrisse luua. Vali, millisesse kalendrisse kirjutada allika { $name } broneeringud.
+source-write-help = Kui keegi broneerib sinuga kohtumise, saab TrueNorth Bookings sündmuse automaatselt sinu kalendrisse luua. Vali, millisesse kalendrisse kirjutada allika { $name } broneeringud.
 source-write-save = Salvesta
 source-write-skip = Jäta praegu vahele
 source-write-sync-results = Sünkroonimise tulemused
@@ -733,7 +733,7 @@ source-form-title-add = Lisa kalender
 source-form-heading-edit = Muuda kalendriallikat
 source-form-heading-add = Ühenda kalender
 source-form-subtitle-edit = Uuenda ühendust. Jäta parool tühjaks, et praegune alles jääks. Pärast aadressi või kasutajanime muutmist käivita sünkroonimine, et leitud kalendrite loend värskeneks.
-source-form-subtitle-add = Ühenda CalDAV-server või Microsoft Exchange (EWS), et calrs saaks broneerimisel saadavust kontrollida.
+source-form-subtitle-add = Ühenda CalDAV-server või Microsoft Exchange (EWS), et TrueNorth Bookings saaks broneerimisel saadavust kontrollida.
 source-form-backend = Taustsüsteem
 source-form-preset = Eelseadistus
 source-form-connect-google = Ühenda Google’iga
@@ -764,7 +764,7 @@ source-form-help-sogo = <strong>SOGo</strong> — Kasuta SOGo DAV-lõpp-punkti.<
 source-form-help-radicale = <strong>Radicale</strong> — Kasuta serveri juuraadressi.<br> Tavaliselt: <code>https://cal.example.com/</code>
 source-form-help-exchange = <strong>Microsoft Exchange (EWS)</strong>. Kasuta SOAP-lõpp-punkti:<br> <code>https://mail.example.com/EWS/Exchange.asmx</code><br> Kasutajanimi on postkasti aadress; parool peab lubama HTTP Basicut üle TLS-i (kui teie keskkonnas on Basic keelatud, luba see teeninduspostkastil).<br> Vali kindlasti ka ülalolevast taustsüsteemi menüüst <strong>Microsoft Exchange (EWS)</strong>.
 source-form-help-google = <strong>Google’i kalender</strong>: ühendus OAuth2 kaudu. Parooli pole vaja.<br>
-source-form-help-other = Sisesta oma CalDAV-serveri <strong>DAV-i juuraadress</strong> — mitte üksiku kalendri oma ega avalikku linki.<br> calrs leiab sinu kalendrid ise PROPFINDi abil (RFC 4791).
+source-form-help-other = Sisesta oma CalDAV-serveri <strong>DAV-i juuraadress</strong> — mitte üksiku kalendri oma ega avalikku linki.<br> TrueNorth Bookings leiab sinu kalendrid ise PROPFINDi abil (RFC 4791).
 
 # Markdown editor toolbar, short labels (templates/team_form.html, templates/team_settings.html)
 
@@ -1098,7 +1098,7 @@ admin-no-teams = Meeskondi veel pole.
 admin-save-resource = Salvesta ressurss
 admin-add-resource = Lisa ressurss
 admin-jitsi = Jitsi (automaatselt loodud kohtumislingid)
-admin-jitsi-help = Kui sündmuse tüübi asukohaks on „Jitsi (automaatselt loodud ruum)“, koostab calrs iga broneeringu jaoks uue ruumiaadressi, lisades allpool oleva mustri sinu Jitsi baasaadressi järele. Väline API-päring pole vajalik.
+admin-jitsi-help = Kui sündmuse tüübi asukohaks on „Jitsi (automaatselt loodud ruum)“, koostab TrueNorth Bookings iga broneeringu jaoks uue ruumiaadressi, lisades allpool oleva mustri sinu Jitsi baasaadressi järele. Väline API-päring pole vajalik.
 admin-display-name = Kuvatav nimi
 admin-jitsi-display-name-placeholder = nt Meet DYB
 admin-jitsi-display-name-help = Kuvatakse külalistele aja valimisel ja broneerimisvormil. Tühjaks jättes kasutatakse „Videokõne“.
@@ -1157,7 +1157,7 @@ admin-sms-country = Vaikimisi riigi suunakood
 admin-sms-country-hint = (kasutatakse, kui külalised sisestavad kohaliku numbri)
 admin-sms-daily-cap = Päevalimiit
 admin-sms-daily-cap-hint = (sõnumeid päevas kogu paigalduse kohta, 0 tähendab piiranguta)
-admin-sms-daily-cap-help = Limiidi ületamisel lõpetab calrs lühisõnumite saatmise ja jätkab e-kirjadega, nii et ükski broneering ei ebaõnnestu otsa saanud SMS-eelarve tõttu.
+admin-sms-daily-cap-help = Limiidi ületamisel lõpetab TrueNorth Bookings lühisõnumite saatmise ja jätkab e-kirjadega, nii et ükski broneering ei ebaõnnestu otsa saanud SMS-eelarve tõttu.
 admin-save-sms = Salvesta SMS-i seaded
 admin-send-test-sms = Saada testsõnum numbrile
 admin-send-test-sms-hint-check = (jäta tühjaks, et kontrollida ainult pääsuandmeid)
@@ -1179,8 +1179,8 @@ admin-set-by-env = — määratud keskkonnast ({ $var }), tühistab salvestatud 
 admin-google-help = Google’i kalendri sidumiseks loo OAuth2 pääsuandmed <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--accent);">Google Cloud Console’is</a>. Luba <strong>Google Calendar API</strong> ja lisa seejärel { $redirect_uri } lubatud ümbersuunamisaadressiks.
 admin-room-pattern-help = Saadaolevad kohatäited: <code>{"{"}username{"}"}</code> (korraldaja), <code>{"{"}event{"}"}</code> (sündmuse tüübi identifikaator), <code>{"{"}date{"}"}</code> (AAAAKKPP), <code>{"{"}random{"}"}</code> (8 märki). Vaikimisi: { $default }.
 admin-room-pattern-warning = Ilma kohatäiteta <code>{"{"}random{"}"}</code> on ruumi nimi ettearvatav: kaks külalist, kes broneerivad sama sündmuse tüübi samal päeval, satuvad ühte ruumi ja näevad teineteise kohtumist. Püsivad ruumid on lubatud (näiteks üks isiklik ruum korraldaja kohta), kuid lülita see sisse ainult siis, kui mõistad tagajärgi.
-admin-meeting-webhook-help = Kui sündmuse tüübi asukohaks on „Webhook (oma teenusepakkuja)“, saadab calrs kinnitamisel broneeringu andmed POST-päringuga sellele aadressile ja ootab vastuseks JSON-keha <code>{"{"}"url": "https://..."{"}"}</code>.
-admin-auth-hmac-help = HMAC-i korral saadab calrs päringu töötlemata kehast arvutatud <code>X-Calrs-Signature: sha256=&lt;hex&gt;</code>.
+admin-meeting-webhook-help = Kui sündmuse tüübi asukohaks on „Webhook (oma teenusepakkuja)“, saadab TrueNorth Bookings kinnitamisel broneeringu andmed POST-päringuga sellele aadressile ja ootab vastuseks JSON-keha <code>{"{"}"url": "https://..."{"}"}</code>.
+admin-auth-hmac-help = HMAC-i korral saadab TrueNorth Bookings päringu töötlemata kehast arvutatud <code>X-Calrs-Signature: sha256=&lt;hex&gt;</code>.
 admin-tls-none-warning = Vali <strong>Puudub</strong> ainult selles masinas töötava edastusteenuse jaoks, mis ei paku STARTTLS-i või mille sertifikaat on ise allkirjastatud. Kirjad ja kõik pääsuandmed liiguvad siis krüptimata kujul.
 admin-smtp-env-error-help = Paranda keskkonnamuutujad <code>CALRS_SMTP_*</code> või eemalda need, et hallata SMTP-d siit andmebaasist.
 admin-smtp-env-managed = Hallatakse <strong>keskkonnamuutujatega</strong> (need on andmebaasist ülimuslikud). Muuda muutujaid <code>CALRS_SMTP_*</code> või eemalda need, et hallata SMTP-d siit.

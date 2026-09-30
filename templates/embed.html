@@ -1,5 +1,5 @@
 {% extends "dashboard_base.html" %}
-{% block title %}Embed — {{ event_type_title }} — calrs{% endblock %}
+{% block title %}Embed — {{ event_type_title }} — TrueNorth Bookings{% endblock %}
 {% block dashboard_content %}
 <style>
   /* The embed page is preview-heavy, so let it use more horizontal space than
@@ -238,7 +238,7 @@
   function snippetInline() {
     var divId = 'calrs-inline-' + encodeURIComponent(calPath.replace(/^\//, '').replace(/\//g, '-'));
     return [
-      '<!-- calrs inline embed -->',
+      '<!-- TrueNorth Bookings inline embed -->',
       '<div id="' + divId + '" style="width:100%;min-height:600px"></div>',
       '<script src="' + snippetBase + '/embed.js" defer><' + '/script>',
       '<script>',
@@ -255,7 +255,7 @@
 
   function snippetFloating() {
     return [
-      '<!-- calrs floating-button embed -->',
+      '<!-- TrueNorth Bookings floating-button embed -->',
       '<script src="' + snippetBase + '/embed.js" defer><' + '/script>',
       '<script>',
       indent(2) + 'window.addEventListener("DOMContentLoaded", function () {',
@@ -275,7 +275,7 @@
 
   function snippetElement() {
     return [
-      '<!-- calrs element-click embed -->',
+      '<!-- TrueNorth Bookings element-click embed -->',
       '<!-- Add these attributes to any clickable element on your page: -->',
       '<!--   data-calrs-link="' + snippetBase + calPath + '" -->',
       '<!--   data-calrs-config=\'' + buildConfigJs() + '\' -->',

@@ -176,13 +176,20 @@ async fn main() -> Result<()> {
             // Graceful shutdown on SIGINT (Ctrl+C) or SIGTERM
             let shutdown = async {
                 let ctrl_c = tokio::signal::ctrl_c();
-                let mut sigterm =
-                    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-                        .expect("failed to install SIGTERM handler");
+                #[cfg(unix)]
+                {
+                    let mut sigterm =
+                        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+                            .expect("failed to install SIGTERM handler");
 
-                tokio::select! {
-                    _ = ctrl_c => {},
-                    _ = sigterm.recv() => {},
+                    tokio::select! {
+                        _ = ctrl_c => {},
+                        _ = sigterm.recv() => {},
+                    }
+                }
+                #[cfg(not(unix))]
+                {
+                    let _ = ctrl_c.await;
                 }
 
                 tracing::info!("Shutdown signal received, stopping gracefully...");

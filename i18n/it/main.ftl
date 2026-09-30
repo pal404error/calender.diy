@@ -171,7 +171,7 @@ action-error-page-title = Errore nell'azione di prenotazione
 
 # Host-initiated reschedule (booking_host_reschedule.html)
 
-host-resched-page-title = Riprogramma prenotazione — calrs
+host-resched-page-title = Riprogramma prenotazione — TrueNorth Bookings
 host-resched-heading = Riprogramma prenotazione
 host-resched-subtitle = Verrà inviata a { $guest } un'e-mail con la richiesta di scegliere un nuovo orario.
 host-resched-currently = Attualmente:
@@ -235,7 +235,7 @@ common-format-long-date = { $weekday } { $day } { $month } { $year }
 
 # Email signatures and shared bits (src/email.rs)
 
-email-signature = — calrs
+email-signature = — TrueNorth Bookings
 email-action-reschedule = Riprogramma
 email-action-cancel-booking = Annulla prenotazione
 
@@ -453,7 +453,7 @@ sources-reconnect-title = Ripeti la procedura di consenso Google
 sources-edit = Modifica
 sources-remove = Rimuovi
 sources-remove-confirm = Rimuovere l'origine «{ $name }»? Verranno eliminati tutti gli eventi sincronizzati da questa origine.
-sources-no-write-calendar = Nessun calendario di scrittura selezionato. Le prenotazioni confermate restano in calrs e non vengono inviate a questo calendario. Scegline uno qui sotto per attivare la scrittura.
+sources-no-write-calendar = Nessun calendario di scrittura selezionato. Le prenotazioni confermate restano in TrueNorth Bookings e non vengono inviate a questo calendario. Scegline uno qui sotto per attivare la scrittura.
 sources-write-bookings-to = Scrivi le prenotazioni in:
 sources-write-none = Nessuno (non scrivere)
 sources-empty = Nessuna origine calendario collegata. { $link } per controllare la disponibilità.
@@ -530,7 +530,7 @@ settings-language-help = Scegli una lingua per l'interfaccia, o lascia su Automa
 settings-dynamic-group = Consenti ad altri di includermi nei link di gruppo dinamici
 settings-dynamic-group-help = Se attivo, altri utenti possono creare al volo URL di incontro collettivo che ti includono (per es. { $example }).
 settings-lend-resource = Presta il mio accesso al calendario per le prenotazioni di risorse
-settings-lend-resource-help = Quando una prenotazione deve riservare una risorsa condivisa (laboratorio demo, sala riunioni) su cui il tuo account calendario può scrivere, consenti a calrs di usare le tue credenziali salvate per quella scrittura.
+settings-lend-resource-help = Quando una prenotazione deve riservare una risorsa condivisa (laboratorio demo, sala riunioni) su cui il tuo account calendario può scrivere, consenti a TrueNorth Bookings di usare le tue credenziali salvate per quella scrittura.
 settings-default-availability = Disponibilità predefinita
 settings-default-availability-help = Il tuo orario di lavoro predefinito. Viene usato per i link di gruppo dinamici quando altri ti includono in un incontro.
 settings-copy-to-all = Copia su tutti i giorni
@@ -547,7 +547,7 @@ settings-theme-dark = Scuro
 
 login-page-title = Accedi
 login-heading = Accedi
-login-subtitle = Accedi al tuo account calrs
+login-subtitle = Accedi al tuo account TrueNorth Bookings
 login-sso = Accedi con SSO
 login-or = oppure
 login-email = E-mail
@@ -560,7 +560,7 @@ login-register-link = Registrati
 
 register-page-title = Registrazione
 register-heading = Crea un account
-register-subtitle = Registra un nuovo account calrs
+register-subtitle = Registra un nuovo account TrueNorth Bookings
 register-domains-limited = La registrazione è limitata a: { $domains }
 register-name = Nome
 register-name-placeholder = Il tuo nome
@@ -593,7 +593,7 @@ source-test-heading = Prova di connessione
 source-write-page-title = Configura la scrittura sul calendario
 source-write-back = Torna al pannello
 source-write-heading = Dove devono finire le prenotazioni?
-source-write-help = Quando qualcuno prenota un incontro con te, calrs può creare automaticamente l'evento nel tuo calendario. Scegli in quale calendario scrivere le prenotazioni per { $name }.
+source-write-help = Quando qualcuno prenota un incontro con te, TrueNorth Bookings può creare automaticamente l'evento nel tuo calendario. Scegli in quale calendario scrivere le prenotazioni per { $name }.
 source-write-save = Salva
 source-write-skip = Salta per ora
 source-write-sync-results = Esiti della sincronizzazione
@@ -733,7 +733,7 @@ source-form-title-add = Aggiungi un calendario
 source-form-heading-edit = Modifica l'origine calendario
 source-form-heading-add = Collega un calendario
 source-form-subtitle-edit = Aggiorna la connessione. Lascia la password vuota per mantenere quella esistente. Dopo aver cambiato URL o nome utente, esegui una sincronizzazione per aggiornare l'elenco dei calendari rilevati.
-source-form-subtitle-add = Collega un server CalDAV o Microsoft Exchange (EWS) così calrs può controllare la disponibilità quando gli ospiti prenotano.
+source-form-subtitle-add = Collega un server CalDAV o Microsoft Exchange (EWS) così TrueNorth Bookings può controllare la disponibilità quando gli ospiti prenotano.
 source-form-backend = Backend
 source-form-preset = Preimpostazione
 source-form-connect-google = Collega con Google
@@ -750,7 +750,7 @@ source-form-skip-test = Salta la prova di connessione
 source-form-skip-test-help = Usalo se la prova si blocca (succede con alcune installazioni BlueMind o Zimbra). Puoi provare la connessione più tardi.
 source-form-save = Salva le modifiche
 source-form-add = Aggiungi l'origine calendario
-source-form-help-google-configured = Premi il pulsante qui sotto per autorizzare calrs ad accedere al tuo Google Calendar.
+source-form-help-google-configured = Premi il pulsante qui sotto per autorizzare TrueNorth Bookings ad accedere al tuo Google Calendar.
 source-form-help-google-unconfigured = L'integrazione con Google Calendar non è ancora configurata. Chiedi all'amministrazione di impostare le credenziali OAuth2 di Google nel pannello di amministrazione.
 
 # Calendar source form: provider help (templates/source_form.html)
@@ -764,7 +764,7 @@ source-form-help-sogo = <strong>SOGo</strong> — Usa l'endpoint DAV di SOGo.<br
 source-form-help-radicale = <strong>Radicale</strong> — Usa l'URL radice del server.<br> Di norma: <code>https://cal.example.com/</code>
 source-form-help-exchange = <strong>Microsoft Exchange (EWS)</strong>. Usa l'endpoint SOAP:<br> <code>https://mail.example.com/EWS/Exchange.asmx</code><br> Il nome utente è l'indirizzo della casella; la password deve accettare HTTP Basic su TLS (attivalo su una casella di servizio se il tuo tenant lo ha disabilitato).<br> Ricordati di scegliere anche <strong>Microsoft Exchange (EWS)</strong> nel menu Backend qui sopra.
 source-form-help-google = <strong>Google Calendar</strong>: connessione tramite OAuth2. Nessuna password necessaria.<br>
-source-form-help-other = Inserisci l'<strong>URL radice DAV</strong> del tuo server CalDAV, non quella di un singolo calendario né un link pubblico.<br> calrs rileverà i tuoi calendari automaticamente tramite PROPFIND (RFC 4791).
+source-form-help-other = Inserisci l'<strong>URL radice DAV</strong> del tuo server CalDAV, non quella di un singolo calendario né un link pubblico.<br> TrueNorth Bookings rileverà i tuoi calendari automaticamente tramite PROPFIND (RFC 4791).
 
 # Markdown editor toolbar, short labels (templates/team_form.html, templates/team_settings.html)
 
@@ -1098,7 +1098,7 @@ admin-no-teams = Ancora nessun team.
 admin-save-resource = Salva la risorsa
 admin-add-resource = Aggiungi una risorsa
 admin-jitsi = Jitsi (link d'incontro generati automaticamente)
-admin-jitsi-help = Quando il luogo di un tipo di evento è «Jitsi (stanza generata automaticamente)», calrs costruisce per ogni prenotazione un URL di stanza nuovo aggiungendo lo schema qui sotto al tuo URL di base Jitsi. Non serve alcuna chiamata a un'API esterna.
+admin-jitsi-help = Quando il luogo di un tipo di evento è «Jitsi (stanza generata automaticamente)», TrueNorth Bookings costruisce per ogni prenotazione un URL di stanza nuovo aggiungendo lo schema qui sotto al tuo URL di base Jitsi. Non serve alcuna chiamata a un'API esterna.
 admin-display-name = Nome visualizzato
 admin-jitsi-display-name-placeholder = per es. Meet DYB
 admin-jitsi-display-name-help = Viene mostrato agli ospiti nel selettore degli slot e nel modulo di prenotazione. Se lasciato vuoto, si usa «Videochiamata».
@@ -1157,7 +1157,7 @@ admin-sms-country = Prefisso internazionale predefinito
 admin-sms-country-hint = (usato quando gli ospiti inseriscono un numero locale)
 admin-sms-daily-cap = Limite giornaliero
 admin-sms-daily-cap-hint = (messaggi al giorno per l'intera istanza, 0 per nessun limite)
-admin-sms-daily-cap-help = Superato il limite, calrs smette di inviare SMS e continua a inviare e-mail, così nessuna prenotazione fallisce perché il budget SMS è esaurito.
+admin-sms-daily-cap-help = Superato il limite, TrueNorth Bookings smette di inviare SMS e continua a inviare e-mail, così nessuna prenotazione fallisce perché il budget SMS è esaurito.
 admin-save-sms = Salva le impostazioni SMS
 admin-send-test-sms = Invia un messaggio di prova a
 admin-send-test-sms-hint-check = (lascia vuoto per verificare solo le credenziali)
@@ -1179,8 +1179,8 @@ admin-set-by-env = — impostato dall'ambiente ({ $var }), ha la precedenza sul 
 admin-google-help = Per attivare l'integrazione con Google Calendar, crea delle credenziali OAuth2 nella <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--accent);">Google Cloud Console</a>. Attiva la <strong>Google Calendar API</strong>, poi aggiungi { $redirect_uri } come URI di reindirizzamento autorizzato.
 admin-room-pattern-help = Segnaposto disponibili: <code>{"{"}username{"}"}</code> (organizzatore), <code>{"{"}event{"}"}</code> (identificativo del tipo di evento), <code>{"{"}date{"}"}</code> (AAAAMMGG), <code>{"{"}random{"}"}</code> (8 caratteri). Predefinito: { $default }.
 admin-room-pattern-warning = Senza <code>{"{"}random{"}"}</code> il nome della stanza è prevedibile: due ospiti che prenotano lo stesso tipo di evento nello stesso giorno finiscono nella stessa stanza e possono vedere l'incontro dell'altro. Le stanze fisse sono ammesse (per esempio una stanza personale per ogni organizzatore), ma attivale solo se sei consapevole del compromesso.
-admin-meeting-webhook-help = Quando il luogo di un tipo di evento è «Webhook (fornitore personalizzato)», al momento della conferma calrs invia i dati della prenotazione in POST a questo URL e si aspetta in risposta un corpo JSON <code>{"{"}"url": "https://..."{"}"}</code>.
-admin-auth-hmac-help = Con HMAC, calrs invia <code>X-Calrs-Signature: sha256=&lt;hex&gt;</code> calcolato sul corpo grezzo della richiesta.
+admin-meeting-webhook-help = Quando il luogo di un tipo di evento è «Webhook (fornitore personalizzato)», al momento della conferma TrueNorth Bookings invia i dati della prenotazione in POST a questo URL e si aspetta in risposta un corpo JSON <code>{"{"}"url": "https://..."{"}"}</code>.
+admin-auth-hmac-help = Con HMAC, TrueNorth Bookings invia <code>X-Calrs-Signature: sha256=&lt;hex&gt;</code> calcolato sul corpo grezzo della richiesta.
 admin-tls-none-warning = Scegli <strong>Nessuna</strong> solo per un relay su questa macchina che non offre STARTTLS, o il cui certificato è autofirmato. La posta, e le eventuali credenziali, viaggeranno in chiaro.
 admin-smtp-env-error-help = Correggi le variabili d'ambiente <code>CALRS_SMTP_*</code>, oppure rimuovile per gestire l'SMTP dal database qui.
 admin-smtp-env-managed = Gestito tramite <strong>variabili d'ambiente</strong> (hanno la precedenza sul database). Modifica le variabili <code>CALRS_SMTP_*</code>, oppure rimuovile per gestire l'SMTP da qui.

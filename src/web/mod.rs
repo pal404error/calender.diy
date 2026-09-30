@@ -596,6 +596,7 @@ pub async fn run_reminder_loop(pool: SqlitePool, secret_key: [u8; 32]) {
                 host_language: host_language.clone(),
                 host_timezone: stored_tz_str.to_string(),
                 resource_name: booking_resource_label(&pool, uid).await,
+                ..Default::default()
             };
 
             let guest_cancel_url = cancel_token.as_ref().and_then(|t| {
@@ -3036,6 +3037,13 @@ struct SettingsForm {
     lend_resource_write: Option<String>,
     #[serde(default)]
     avail_schedule: String,
+    business_name: Option<String>,
+    street_address: Option<String>,
+    province: Option<String>,
+    postal_code: Option<String>,
+    phone: Option<String>,
+    tax_number: Option<String>,
+    prices_include_tax: Option<String>,
 }
 
 async fn settings_page(
@@ -3296,6 +3304,13 @@ struct SettingsValues<'a> {
     allow_dynamic_group: bool,
     lend_resource_write: bool,
     avail_schedule: &'a str,
+    business_name: &'a str,
+    street_address: &'a str,
+    province: &'a str,
+    postal_code: &'a str,
+    phone: &'a str,
+    tax_number: &'a str,
+    prices_include_tax: bool,
 }
 
 impl<'a> SettingsValues<'a> {
@@ -3317,6 +3332,13 @@ impl<'a> SettingsValues<'a> {
             allow_dynamic_group: user.allow_dynamic_group,
             lend_resource_write,
             avail_schedule,
+            business_name: user.business_name.as_deref().unwrap_or(""),
+            street_address: user.street_address.as_deref().unwrap_or(""),
+            province: user.province.as_deref().unwrap_or(""),
+            postal_code: user.postal_code.as_deref().unwrap_or(""),
+            phone: user.phone.as_deref().unwrap_or(""),
+            tax_number: user.tax_number.as_deref().unwrap_or(""),
+            prices_include_tax: user.prices_include_tax,
         }
     }
 }
@@ -3343,6 +3365,10 @@ fn settings_render(
         })
         .collect();
     let lang_options: Vec<minijinja::Value> = crate::i18n::supported_with_labels()
+        .map(|(code, label)| context! { value => code, label => label })
+        .collect();
+    let province_options: Vec<minijinja::Value> = CANADIAN_PROVINCES
+        .iter()
         .map(|(code, label)| context! { value => code, label => label })
         .collect();
     Html(
@@ -3372,6 +3398,14 @@ fn settings_render(
             allow_dynamic_group => values.allow_dynamic_group,
             lend_resource_write => values.lend_resource_write,
             form_avail_schedule => values.avail_schedule,
+            form_business_name => values.business_name,
+            form_street_address => values.street_address,
+            form_province => values.province,
+            province_options => province_options,
+            form_postal_code => values.postal_code,
+            form_phone => values.phone,
+            form_tax_number => values.tax_number,
+            form_prices_include_tax => values.prices_include_tax,
             success => success.unwrap_or(""),
             error => error.unwrap_or(""),
             impersonating => impersonating,
@@ -3449,6 +3483,36 @@ async fn settings_save(
     let allow_dynamic_group = form.allow_dynamic_group.as_deref() == Some("on");
     let lend_resource_write = form.lend_resource_write.as_deref() == Some("on");
 
+    let business_name = form
+        .business_name
+        .as_deref()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string());
+
+    let street_address = form
+        .street_address
+        .as_deref()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string());
+
+    let province = form
+        .province
+        .as_deref()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_uppercase());
+
+    let tax_number = form
+        .tax_number
+        .as_deref()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string());
+
+    let prices_include_tax = form.prices_include_tax.as_deref() == Some("on");
+
     // Every field is normalised before the first check, so a rejected one can be
     // sent back alongside the others instead of the whole form reverting to the
     // stored row. An empty username field means "keep the current one", and that
@@ -3467,6 +3531,13 @@ async fn settings_save(
         allow_dynamic_group,
         lend_resource_write,
         avail_schedule: &form.avail_schedule,
+        business_name: business_name.as_deref().unwrap_or(""),
+        street_address: street_address.as_deref().unwrap_or(""),
+        province: province.as_deref().unwrap_or(""),
+        postal_code: form.postal_code.as_deref().unwrap_or(""),
+        phone: form.phone.as_deref().unwrap_or(""),
+        tax_number: tax_number.as_deref().unwrap_or(""),
+        prices_include_tax,
     };
     // The sidebar is a parameter rather than a capture, so it can be moved into
     // whichever branch ends up rendering. An error path never saves, so it keeps
@@ -3484,6 +3555,28 @@ async fn settings_save(
             &imp_name,
         )
         .into_response()
+    };
+
+    if let Some(ref prov) = province {
+        if !is_valid_canadian_province(prov) {
+            return render_error("Please select a valid Canadian province or territory.", sidebar);
+        }
+    }
+
+    let postal_code = match form.postal_code.as_deref().map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        Some(raw) => match format_canadian_postal_code(raw) {
+            Ok(formatted) => Some(formatted),
+            Err(e) => return render_error(e, sidebar),
+        },
+        None => None,
+    };
+
+    let phone = match form.phone.as_deref().map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        Some(raw) => match format_canadian_phone(raw) {
+            Ok(formatted) => Some(formatted),
+            Err(e) => return render_error(e, sidebar),
+        },
+        None => None,
     };
 
     if name.is_empty() || name.len() > 255 {
@@ -3534,7 +3627,7 @@ async fn settings_save(
     }
 
     let result = sqlx::query(
-        "UPDATE users SET name = ?, title = ?, bio = ?, booking_email = ?, timezone = ?, language = ?, allow_dynamic_group = ?, lend_resource_write = ?, updated_at = datetime('now') WHERE id = ?",
+        "UPDATE users SET name = ?, title = ?, bio = ?, booking_email = ?, timezone = ?, language = ?, allow_dynamic_group = ?, lend_resource_write = ?, business_name = ?, street_address = ?, province = ?, postal_code = ?, phone = ?, tax_number = ?, prices_include_tax = ?, updated_at = datetime('now') WHERE id = ?",
     )
     .bind(&name)
     .bind(&title)
@@ -3544,6 +3637,13 @@ async fn settings_save(
     .bind(&language)
     .bind(allow_dynamic_group)
     .bind(lend_resource_write)
+    .bind(&business_name)
+    .bind(&street_address)
+    .bind(&province)
+    .bind(&postal_code)
+    .bind(&phone)
+    .bind(&tax_number)
+    .bind(prices_include_tax as i32)
     .bind(&user.id)
     .execute(&state.pool)
     .await;
@@ -4800,6 +4900,10 @@ struct EventTypeForm {
     min_notice_min: String,
     requires_confirmation: Option<String>, // checkbox: "on" or absent
     sms_phone_mode: Option<String>,        // checkbox: "on" or absent
+    #[serde(default)]
+    deposit_amount: String,
+    deposit_recipient_email: Option<String>,
+    cancellation_policy: Option<String>,
     visibility: Option<String>,            // "public", "internal", or "private"
     location_type: Option<String>, // "link", "phone", "in_person", "custom", "jitsi_auto", "webhook_auto", "google_meet"
     location_value: Option<String>,
@@ -5168,6 +5272,9 @@ async fn new_event_type_form(
             form_reschedule_notice_value => 0,
             form_reschedule_notice_unit => "minutes",
             form_booking_horizon_days => "",
+            form_deposit_amount => "",
+            form_deposit_recipient_email => "",
+            form_cancellation_policy => "",
             tz_options => common_timezones_with(&user.timezone)
                 .iter()
                 .map(|(iana, label)| context! { value => iana, label => label })
@@ -5352,9 +5459,30 @@ async fn create_event_type(
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
+    let deposit_amount = form
+        .deposit_amount
+        .trim()
+        .parse::<f64>()
+        .ok()
+        .filter(|&v| v > 0.0);
+    let deposit_recipient_email = form
+        .deposit_recipient_email
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+    let cancellation_policy = form
+        .cancellation_policy
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+
+    let requires_confirmation = requires_confirmation || deposit_amount.is_some();
+
     let _ = sqlx::query(
-        "INSERT INTO event_types (id, account_id, slug, title, description, duration_min, slot_interval_min, buffer_before, buffer_after, min_notice_min, requires_confirmation, location_type, location_value, team_id, created_by_user_id, reminder_minutes, visibility, max_additional_guests, default_calendar_view, first_slot_only, timezone, cancel_notice_min, reschedule_notice_min, meeting_pattern_override, sms_phone_mode, booking_horizon_days)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO event_types (id, account_id, slug, title, description, duration_min, slot_interval_min, buffer_before, buffer_after, min_notice_min, requires_confirmation, location_type, location_value, team_id, created_by_user_id, reminder_minutes, visibility, max_additional_guests, default_calendar_view, first_slot_only, timezone, cancel_notice_min, reschedule_notice_min, meeting_pattern_override, sms_phone_mode, booking_horizon_days, deposit_amount, deposit_recipient_email, cancellation_policy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(&et_id)
     .bind(&account_id)
@@ -5382,6 +5510,9 @@ async fn create_event_type(
     .bind(&meeting_pattern_override)
     .bind(&sms_phone_mode)
     .bind(booking_horizon_days)
+    .bind(deposit_amount)
+    .bind(&deposit_recipient_email)
+    .bind(&cancellation_policy)
     .execute(&state.pool)
     .await;
 
@@ -5597,6 +5728,37 @@ async fn edit_event_type_form(
     .await
     .unwrap_or(None)
     .flatten();
+
+    let form_deposit_amount: String = sqlx::query_scalar::<_, Option<f64>>(
+        "SELECT deposit_amount FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None)
+    .flatten()
+    .map(|v| format!("{:.2}", v))
+    .unwrap_or_default();
+
+    let form_deposit_recipient_email: String = sqlx::query_scalar::<_, Option<String>>(
+        "SELECT deposit_recipient_email FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None)
+    .flatten()
+    .unwrap_or_default();
+
+    let form_cancellation_policy: String = sqlx::query_scalar::<_, Option<String>>(
+        "SELECT cancellation_policy FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None)
+    .flatten()
+    .unwrap_or_default();
 
     // Get current availability rules
     let all_rules: Vec<(i32, String, String)> = sqlx::query_as(
@@ -5830,6 +5992,9 @@ async fn edit_event_type_form(
             form_reschedule_notice_value => form_reschedule_notice_value,
             form_reschedule_notice_unit => form_reschedule_notice_unit,
             form_booking_horizon_days => form_booking_horizon_days,
+            form_deposit_amount => form_deposit_amount,
+            form_deposit_recipient_email => form_deposit_recipient_email,
+            form_cancellation_policy => form_cancellation_policy,
             tz_options => common_timezones_with(&form_timezone)
                 .iter()
                 .map(|(iana, label)| context! { value => iana, label => label })
@@ -5977,8 +6142,29 @@ async fn update_event_type(
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
+    let deposit_amount = form
+        .deposit_amount
+        .trim()
+        .parse::<f64>()
+        .ok()
+        .filter(|&v| v > 0.0);
+    let deposit_recipient_email = form
+        .deposit_recipient_email
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+    let cancellation_policy = form
+        .cancellation_policy
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+
+    let requires_confirmation = requires_confirmation || deposit_amount.is_some();
+
     let _ = sqlx::query(
-        "UPDATE event_types SET slug = ?, title = ?, description = ?, duration_min = ?, slot_interval_min = ?, buffer_before = ?, buffer_after = ?, min_notice_min = ?, requires_confirmation = ?, location_type = ?, location_value = ?, reminder_minutes = ?, visibility = ?, max_additional_guests = ?, scheduling_mode = ?, default_calendar_view = ?, first_slot_only = ?, timezone = ?, cancel_notice_min = ?, reschedule_notice_min = ?, meeting_pattern_override = ?, sms_phone_mode = ?, booking_horizon_days = ? WHERE id = ?",
+        "UPDATE event_types SET slug = ?, title = ?, description = ?, duration_min = ?, slot_interval_min = ?, buffer_before = ?, buffer_after = ?, min_notice_min = ?, requires_confirmation = ?, location_type = ?, location_value = ?, reminder_minutes = ?, visibility = ?, max_additional_guests = ?, scheduling_mode = ?, default_calendar_view = ?, first_slot_only = ?, timezone = ?, cancel_notice_min = ?, reschedule_notice_min = ?, meeting_pattern_override = ?, sms_phone_mode = ?, booking_horizon_days = ?, deposit_amount = ?, deposit_recipient_email = ?, cancellation_policy = ? WHERE id = ?",
     )
     .bind(&new_slug)
     .bind(form.title.trim())
@@ -6003,6 +6189,9 @@ async fn update_event_type(
     .bind(&meeting_pattern_override)
     .bind(&sms_phone_mode)
     .bind(booking_horizon_days)
+    .bind(deposit_amount)
+    .bind(&deposit_recipient_email)
+    .bind(&cancellation_policy)
     .bind(&et_id)
     .execute(&state.pool)
     .await;
@@ -7527,6 +7716,9 @@ async fn render_event_type_form_error(
             // Preserve what the user typed, so a validation error doesn't
             // silently blank the horizon back to "no limit".
             form_booking_horizon_days => form.booking_horizon_days.trim(),
+            form_deposit_amount => form.deposit_amount.trim(),
+            form_deposit_recipient_email => form.deposit_recipient_email.as_deref().unwrap_or(""),
+            form_cancellation_policy => form.cancellation_policy.as_deref().unwrap_or(""),
             tz_options => common_timezones_with(form.timezone.as_deref().unwrap_or(&auth_user.user.timezone))
                 .iter()
                 .map(|(iana, label)| context! { value => iana, label => label })
@@ -8531,6 +8723,9 @@ async fn new_group_event_type_form(
             form_first_slot_only => false,
             form_frequency_limits => "",
             form_booking_horizon_days => "",
+            form_deposit_amount => "",
+            form_deposit_recipient_email => "",
+            form_cancellation_policy => "",
             form_timezone => &user.timezone,
             tz_options => common_timezones_with(&user.timezone)
                 .iter()
@@ -8687,9 +8882,30 @@ async fn create_group_event_type(
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
+    let deposit_amount = form
+        .deposit_amount
+        .trim()
+        .parse::<f64>()
+        .ok()
+        .filter(|&v| v > 0.0);
+    let deposit_recipient_email = form
+        .deposit_recipient_email
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+    let cancellation_policy = form
+        .cancellation_policy
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+
+    let requires_confirmation = requires_confirmation || deposit_amount.is_some();
+
     let _ = sqlx::query(
-        "INSERT INTO event_types (id, account_id, slug, title, description, duration_min, slot_interval_min, buffer_before, buffer_after, min_notice_min, requires_confirmation, location_type, location_value, team_id, created_by_user_id, default_calendar_view, first_slot_only, timezone, cancel_notice_min, reschedule_notice_min, meeting_pattern_override, sms_phone_mode, booking_horizon_days)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO event_types (id, account_id, slug, title, description, duration_min, slot_interval_min, buffer_before, buffer_after, min_notice_min, requires_confirmation, location_type, location_value, team_id, created_by_user_id, default_calendar_view, first_slot_only, timezone, cancel_notice_min, reschedule_notice_min, meeting_pattern_override, sms_phone_mode, booking_horizon_days, deposit_amount, deposit_recipient_email, cancellation_policy)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(&et_id)
     .bind(&account_id)
@@ -8714,6 +8930,9 @@ async fn create_group_event_type(
     .bind(&meeting_pattern_override)
     .bind(&sms_phone_mode)
     .bind(booking_horizon_days)
+    .bind(deposit_amount)
+    .bind(&deposit_recipient_email)
+    .bind(&cancellation_policy)
     .execute(&state.pool)
     .await;
 
@@ -8928,6 +9147,37 @@ async fn edit_group_event_type_form(
     .unwrap_or(None)
     .flatten();
 
+    let deposit_amount: Option<f64> = sqlx::query_scalar::<_, Option<f64>>(
+        "SELECT deposit_amount FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None)
+    .flatten();
+
+    let deposit_recipient_email: Option<String> = sqlx::query_scalar::<_, Option<String>>(
+        "SELECT deposit_recipient_email FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None)
+    .flatten();
+
+    let cancellation_policy: Option<String> = sqlx::query_scalar::<_, Option<String>>(
+        "SELECT cancellation_policy FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None)
+    .flatten();
+
+    let form_deposit_amount = deposit_amount.map(|v| format!("{:.2}", v)).unwrap_or_default();
+    let form_deposit_recipient_email = deposit_recipient_email.unwrap_or_default();
+    let form_cancellation_policy = cancellation_policy.unwrap_or_default();
+
     // Get current availability rules
     let all_rules: Vec<(i32, String, String)> = sqlx::query_as(
         "SELECT day_of_week, start_time, end_time FROM availability_rules WHERE event_type_id = ? ORDER BY day_of_week, start_time",
@@ -9121,6 +9371,9 @@ async fn edit_group_event_type_form(
             form_reschedule_notice_value => form_reschedule_notice_value,
             form_reschedule_notice_unit => form_reschedule_notice_unit,
             form_booking_horizon_days => form_booking_horizon_days,
+            form_deposit_amount => form_deposit_amount,
+            form_deposit_recipient_email => form_deposit_recipient_email,
+            form_cancellation_policy => form_cancellation_policy,
             tz_options => common_timezones_with(&form_timezone)
                 .iter()
                 .map(|(iana, label)| context! { value => iana, label => label })
@@ -9284,8 +9537,29 @@ async fn update_group_event_type(
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
+    let deposit_amount = form
+        .deposit_amount
+        .trim()
+        .parse::<f64>()
+        .ok()
+        .filter(|&v| v > 0.0);
+    let deposit_recipient_email = form
+        .deposit_recipient_email
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+    let cancellation_policy = form
+        .cancellation_policy
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
+
+    let requires_confirmation = requires_confirmation || deposit_amount.is_some();
+
     let _ = sqlx::query(
-        "UPDATE event_types SET slug = ?, title = ?, description = ?, duration_min = ?, slot_interval_min = ?, buffer_before = ?, buffer_after = ?, min_notice_min = ?, requires_confirmation = ?, location_type = ?, location_value = ?, reminder_minutes = ?, visibility = ?, max_additional_guests = ?, scheduling_mode = ?, default_calendar_view = ?, first_slot_only = ?, timezone = ?, cancel_notice_min = ?, reschedule_notice_min = ?, meeting_pattern_override = ?, sms_phone_mode = ?, booking_horizon_days = ? WHERE id = ?",
+        "UPDATE event_types SET slug = ?, title = ?, description = ?, duration_min = ?, slot_interval_min = ?, buffer_before = ?, buffer_after = ?, min_notice_min = ?, requires_confirmation = ?, location_type = ?, location_value = ?, reminder_minutes = ?, visibility = ?, max_additional_guests = ?, scheduling_mode = ?, default_calendar_view = ?, first_slot_only = ?, timezone = ?, cancel_notice_min = ?, reschedule_notice_min = ?, meeting_pattern_override = ?, sms_phone_mode = ?, booking_horizon_days = ?, deposit_amount = ?, deposit_recipient_email = ?, cancellation_policy = ? WHERE id = ?",
     )
     .bind(&new_slug)
     .bind(form.title.trim())
@@ -9310,6 +9584,9 @@ async fn update_group_event_type(
     .bind(&meeting_pattern_override)
     .bind(&sms_phone_mode)
     .bind(booking_horizon_days)
+    .bind(deposit_amount)
+    .bind(&deposit_recipient_email)
+    .bind(&cancellation_policy)
     .bind(&et_id)
     .execute(&state.pool)
     .await;
@@ -10127,6 +10404,14 @@ async fn show_group_book_form(
         }
     };
 
+    let (deposit_amount, deposit_recipient_email, cancellation_policy): (Option<f64>, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT deposit_amount, deposit_recipient_email, cancellation_policy FROM event_types WHERE id = ?"
+    )
+    .bind(&et_id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap_or((None, None, None));
+
     // Logged-in team members (and global admins) substitute for the team
     // invite token on public events of private teams. Private/internal events
     // still require a valid booking-invite token regardless of team membership.
@@ -10259,6 +10544,9 @@ async fn show_group_book_form(
             phone_default_country => phone_default_country,
             form_phone => "",
             max_additional_guests => max_additional_guests,
+            deposit_amount => deposit_amount.map(|v| format!("{:.2}", v)).unwrap_or_default(),
+            deposit_recipient_email => deposit_recipient_email.unwrap_or_default(),
+            cancellation_policy => cancellation_policy.unwrap_or_default(),
             company_link => state.company_link.read().await.clone(),
             captcha_enabled => captcha.enabled,
             captcha_api_endpoint => captcha.api_endpoint,
@@ -10357,7 +10645,15 @@ async fn handle_group_booking(
             .into_response()
         }
     };
-    let needs_approval = requires_confirmation != 0;
+    let (deposit_amount, deposit_recipient_email, cancellation_policy): (Option<f64>, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT deposit_amount, deposit_recipient_email, cancellation_policy FROM event_types WHERE id = ?"
+    )
+    .bind(&et_id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap_or((None, None, None));
+
+    let needs_approval = requires_confirmation != 0 || deposit_amount.is_some();
     let sms_phone_mode: String =
         sqlx::query_scalar("SELECT sms_phone_mode FROM event_types WHERE id = ?")
             .bind(&et_id)
@@ -10802,6 +11098,9 @@ async fn handle_group_booking(
         guest_language: Some(lang.to_string()),
         host_timezone: host_tz.name().to_string(),
         resource_name: booking_resource_label(&state.pool, &uid).await,
+        deposit_amount: deposit_amount,
+        deposit_recipient_email: deposit_recipient_email.clone(),
+        cancellation_policy: cancellation_policy.clone(),
         ..Default::default()
     };
 
@@ -10942,6 +11241,9 @@ async fn handle_group_booking(
             guest_email => form.email,
             notes => form.notes,
             pending => needs_approval,
+            deposit_amount => deposit_amount.map(|v| format!("{:.2}", v)).unwrap_or_default(),
+            deposit_recipient_email => deposit_recipient_email.unwrap_or_default(),
+            cancellation_policy => cancellation_policy.unwrap_or_default(),
             location_type => loc_type,
             location_value => location_display,
             additional_attendees => additional_attendees,
@@ -12282,6 +12584,18 @@ async fn show_book_form_for_user(
 
     let lang = crate::i18n::resolve(user_lang.as_deref(), &headers);
 
+    let et_canadian: (Option<f64>, Option<String>, Option<String>, Option<String>, i32) = sqlx::query_as(
+        "SELECT et.deposit_amount, et.deposit_recipient_email, et.cancellation_policy, u.tax_number, u.prices_include_tax
+         FROM event_types et
+         JOIN accounts a ON a.id = et.account_id
+         JOIN users u ON u.id = a.user_id
+         WHERE et.id = ?"
+    )
+    .bind(&et_id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap_or((None, None, None, None, 0));
+
     // Validate invite token for private event types
     let invite_guest_name;
     let invite_guest_email;
@@ -12400,6 +12714,11 @@ async fn show_book_form_for_user(
             form_notes => "",
             invite_token => query.invite.as_deref().unwrap_or(""),
             max_additional_guests => max_additional_guests,
+            deposit_amount => et_canadian.0.map(|v| format!("{:.2}", v)).unwrap_or_default(),
+            deposit_recipient_email => et_canadian.1.unwrap_or_default(),
+            cancellation_policy => et_canadian.2.unwrap_or_default(),
+            vendor_tax_number => et_canadian.3.unwrap_or_default(),
+            vendor_prices_include_tax => et_canadian.4 != 0,
             company_link => state.company_link.read().await.clone(),
             captcha_enabled => captcha.enabled,
             captcha_api_endpoint => captcha.api_endpoint,
@@ -12504,7 +12823,16 @@ async fn handle_booking_for_user(
     };
 
     let lang = crate::i18n::resolve(user_lang.as_deref(), &headers);
-    let needs_approval = requires_confirmation != 0;
+
+    let (deposit_amount, deposit_recipient_email, cancellation_policy): (Option<f64>, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT deposit_amount, deposit_recipient_email, cancellation_policy FROM event_types WHERE id = ?"
+    )
+    .bind(&et_id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap_or((None, None, None));
+
+    let needs_approval = requires_confirmation != 0 || deposit_amount.is_some();
     let sms_default_country: String = crate::sms::default_country_code(&state.pool).await;
     let phone_to_store = match resolve_guest_phone(
         &sms_phone_mode,
@@ -12826,6 +13154,33 @@ async fn handle_booking_for_user(
     )
     .await;
 
+    let vendor_info: Option<(Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, i32)> = if let Some(ref uid) = host_user_id {
+        sqlx::query_as(
+            "SELECT business_name, street_address, province, postal_code, phone, tax_number, prices_include_tax FROM users WHERE id = ?"
+        )
+        .bind(uid)
+        .fetch_optional(&state.pool)
+        .await
+        .unwrap_or(None)
+    } else {
+        None
+    };
+
+    let vendor_biz_name = vendor_info.as_ref().and_then(|v| v.0.clone());
+    let vendor_street = vendor_info.as_ref().and_then(|v| v.1.clone());
+    let vendor_prov = vendor_info.as_ref().and_then(|v| v.2.clone());
+    let vendor_pc = vendor_info.as_ref().and_then(|v| v.3.clone());
+    let vendor_phone_val = vendor_info.as_ref().and_then(|v| v.4.clone());
+    let vendor_tax_val = vendor_info.as_ref().and_then(|v| v.5.clone());
+    let vendor_prices_include_tax_val = vendor_info.as_ref().map(|v| v.6 != 0).unwrap_or(false);
+
+    let vendor_addr_formatted = match (vendor_street, vendor_prov, vendor_pc) {
+        (Some(s), Some(p), Some(c)) => Some(format!("{}, {} {}", s, p, c)),
+        (Some(s), Some(p), None) => Some(format!("{}, {}", s, p)),
+        (Some(s), None, None) => Some(s),
+        _ => None,
+    };
+
     if let Some((host_name, host_email)) = host {
         let details = crate::email::BookingDetails {
             utc_times: crate::booking_time::ics_times(&start_at, &end_at),
@@ -12846,6 +13201,14 @@ async fn handle_booking_for_user(
             guest_language: Some(lang.to_string()),
             host_timezone: host_tz.name().to_string(),
             resource_name: booking_resource_label(&state.pool, &uid).await,
+            business_name: vendor_biz_name.clone(),
+            business_address: vendor_addr_formatted.clone(),
+            business_phone: vendor_phone_val.clone(),
+            tax_number: vendor_tax_val.clone(),
+            prices_include_tax: vendor_prices_include_tax_val,
+            deposit_amount: deposit_amount,
+            deposit_recipient_email: deposit_recipient_email.clone(),
+            cancellation_policy: cancellation_policy.clone(),
             ..Default::default()
         };
 
@@ -12951,6 +13314,14 @@ async fn handle_booking_for_user(
             guest_email => form.email,
             notes => form.notes,
             pending => needs_approval,
+            deposit_amount => deposit_amount.map(|v| format!("{:.2}", v)).unwrap_or_default(),
+            deposit_recipient_email => deposit_recipient_email.unwrap_or_default(),
+            cancellation_policy => cancellation_policy.unwrap_or_default(),
+            vendor_business_name => vendor_biz_name.unwrap_or_default(),
+            vendor_address => vendor_addr_formatted.unwrap_or_default(),
+            vendor_phone => vendor_phone_val.unwrap_or_default(),
+            vendor_tax_number => vendor_tax_val.unwrap_or_default(),
+            vendor_prices_include_tax => vendor_prices_include_tax_val,
             location_type => loc_type,
             location_value => location_display,
             additional_attendees => additional_attendees,
@@ -14177,16 +14548,73 @@ async fn get_user_tz(pool: &SqlitePool, user_id: &str) -> Tz {
     server_tz()
 }
 
-/// Deterministic default for missing timezone configuration.
+/// Deterministic default for missing timezone configuration (default Canadian zone).
 fn server_tz() -> Tz {
-    Tz::UTC
+    "America/Toronto".parse::<Tz>().unwrap_or(Tz::UTC)
 }
 
-/// Common IANA timezones for the selector (most used ones).
+pub const CANADIAN_PROVINCES: &[(&str, &str)] = &[
+    ("ON", "Ontario (ON)"),
+    ("QC", "Quebec (QC)"),
+    ("BC", "British Columbia (BC)"),
+    ("AB", "Alberta (AB)"),
+    ("MB", "Manitoba (MB)"),
+    ("SK", "Saskatchewan (SK)"),
+    ("NS", "Nova Scotia (NS)"),
+    ("NB", "New Brunswick (NB)"),
+    ("NL", "Newfoundland and Labrador (NL)"),
+    ("PE", "Prince Edward Island (PE)"),
+    ("YT", "Yukon (YT)"),
+    ("NT", "Northwest Territories (NT)"),
+    ("NU", "Nunavut (NU)"),
+];
+
+pub fn is_valid_canadian_province(code: &str) -> bool {
+    CANADIAN_PROVINCES.iter().any(|(c, _)| c.eq_ignore_ascii_case(code))
+}
+
+pub fn format_canadian_postal_code(input: &str) -> Result<String, &'static str> {
+    let cleaned: String = input.chars().filter(|c| c.is_ascii_alphanumeric()).collect();
+    if cleaned.len() != 6 {
+        return Err("Postal code must contain 6 alphanumeric characters (e.g. A1A 1A1)");
+    }
+    let chars: Vec<char> = cleaned.chars().collect();
+    if !chars[0].is_ascii_alphabetic()
+        || !chars[1].is_ascii_digit()
+        || !chars[2].is_ascii_alphabetic()
+        || !chars[3].is_ascii_digit()
+        || !chars[4].is_ascii_alphabetic()
+        || !chars[5].is_ascii_digit()
+    {
+        return Err("Invalid postal code format. Must alternate letter-number (e.g. A1A 1A1)");
+    }
+    Ok(format!("{} {}", (&cleaned[0..3]).to_uppercase(), (&cleaned[3..6]).to_uppercase()))
+}
+
+pub fn format_canadian_phone(input: &str) -> Result<String, &'static str> {
+    let digits: String = input.chars().filter(|c| c.is_ascii_digit()).collect();
+    let digits = if digits.len() == 11 && digits.starts_with('1') {
+        &digits[1..]
+    } else {
+        &digits[..]
+    };
+    if digits.len() != 10 {
+        return Err("Phone number must have 10 digits (e.g. +1 (___) ___-____)");
+    }
+    Ok(format!("+1 ({}) {}-{}", &digits[0..3], &digits[3..6], &digits[6..10]))
+}
+
+/// Common IANA timezones for the selector (Canadian zones first, then major world zones).
 fn common_timezones_with(guest_tz: &str) -> Vec<(String, String)> {
     use chrono::Utc;
     let now = Utc::now();
     let entries: &[(&str, &str)] = &[
+        ("America/Toronto", "Toronto (Eastern)"),
+        ("America/Vancouver", "Vancouver (Pacific)"),
+        ("America/Edmonton", "Edmonton (Mountain)"),
+        ("America/Winnipeg", "Winnipeg (Central)"),
+        ("America/Halifax", "Halifax (Atlantic)"),
+        ("America/St_Johns", "St. John's (Newfoundland)"),
         ("Pacific/Midway", "Midway"),
         ("Pacific/Honolulu", "Hawaii"),
         ("America/Anchorage", "Alaska"),
@@ -14780,6 +15208,18 @@ async fn show_book_form(
     .unwrap_or(None)
     .unwrap_or_else(|| "Host".to_string());
 
+    let et_canadian: (Option<f64>, Option<String>, Option<String>, Option<String>, i32) = sqlx::query_as(
+        "SELECT et.deposit_amount, et.deposit_recipient_email, et.cancellation_policy, u.tax_number, u.prices_include_tax
+         FROM event_types et
+         JOIN accounts a ON a.id = et.account_id
+         JOIN users u ON u.id = a.user_id
+         WHERE et.id = ?"
+    )
+    .bind(&et_id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap_or((None, None, None, None, 0));
+
     let guest_tz = parse_guest_tz(query.tz.as_deref());
     let guest_tz_name = guest_tz.name().to_string();
     let phone_default_country: String = crate::sms::default_country_code(&state.pool).await;
@@ -14840,6 +15280,11 @@ async fn show_book_form(
             sms_phone_mode => sms_phone_mode,
             phone_default_country => phone_default_country,
             max_additional_guests => max_additional_guests,
+            deposit_amount => et_canadian.0.map(|v| format!("{:.2}", v)).unwrap_or_default(),
+            deposit_recipient_email => et_canadian.1.unwrap_or_default(),
+            cancellation_policy => et_canadian.2.unwrap_or_default(),
+            vendor_tax_number => et_canadian.3.unwrap_or_default(),
+            vendor_prices_include_tax => et_canadian.4 != 0,
             company_link => state.company_link.read().await.clone(),
             captcha_enabled => captcha.enabled,
             captcha_api_endpoint => captcha.api_endpoint,
@@ -15165,7 +15610,16 @@ async fn handle_booking(
             .into_response()
         }
     };
-    let needs_approval = requires_confirmation != 0;
+    let et_canadian: (Option<f64>, Option<String>, Option<String>) = sqlx::query_as(
+        "SELECT deposit_amount, deposit_recipient_email, cancellation_policy FROM event_types WHERE id = ?",
+    )
+    .bind(&et_id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap_or((None, None, None));
+    let (deposit_amount, deposit_recipient_email, cancellation_policy) = et_canadian;
+
+    let needs_approval = requires_confirmation != 0 || deposit_amount.is_some();
 
     // Optional phone number, only meaningful (and only stored) when this
     // event type opted into SMS notifications. A guest-posted phone value
@@ -15445,6 +15899,41 @@ async fn handle_booking(
     .await
     .unwrap_or(None);
 
+    let vendor_info: Option<(
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        i32,
+    )> = sqlx::query_as(
+        "SELECT u.business_name, u.street_address, u.province, u.postal_code, u.phone, u.tax_number, u.prices_include_tax
+         FROM users u
+         JOIN accounts a ON a.user_id = u.id
+         JOIN event_types et ON et.account_id = a.id
+         WHERE et.id = ?",
+    )
+    .bind(&et_id)
+    .fetch_optional(&state.pool)
+    .await
+    .unwrap_or(None);
+
+    let vendor_biz_name = vendor_info.as_ref().and_then(|v| v.0.clone());
+    let vendor_street = vendor_info.as_ref().and_then(|v| v.1.clone());
+    let vendor_prov = vendor_info.as_ref().and_then(|v| v.2.clone());
+    let vendor_pc = vendor_info.as_ref().and_then(|v| v.3.clone());
+    let vendor_phone_val = vendor_info.as_ref().and_then(|v| v.4.clone());
+    let vendor_tax_val = vendor_info.as_ref().and_then(|v| v.5.clone());
+    let vendor_prices_include_tax_val = vendor_info.as_ref().map(|v| v.6 != 0).unwrap_or(false);
+
+    let vendor_addr_formatted = match (vendor_street, vendor_prov, vendor_pc) {
+        (Some(s), Some(p), Some(c)) => Some(format!("{}, {} {}", s, p, c)),
+        (Some(s), Some(p), None) => Some(format!("{}, {}", s, p)),
+        (Some(s), None, None) => Some(s),
+        _ => None,
+    };
+
     if let Some((host_name, host_email)) = host {
         let host_user_id: Option<String> = sqlx::query_scalar(
             "SELECT u.id FROM users u JOIN accounts a ON a.user_id = u.id JOIN event_types et ON et.account_id = a.id WHERE et.id = ?",
@@ -15483,6 +15972,14 @@ async fn handle_booking(
             guest_language: Some(lang.to_string()),
             host_timezone: host_tz.name().to_string(),
             resource_name: booking_resource_label(&state.pool, &uid).await,
+            business_name: vendor_biz_name.clone(),
+            business_address: vendor_addr_formatted.clone(),
+            business_phone: vendor_phone_val.clone(),
+            tax_number: vendor_tax_val.clone(),
+            prices_include_tax: vendor_prices_include_tax_val,
+            deposit_amount: deposit_amount,
+            deposit_recipient_email: deposit_recipient_email.clone(),
+            cancellation_policy: cancellation_policy.clone(),
             ..Default::default()
         };
 
@@ -15591,6 +16088,14 @@ async fn handle_booking(
             guest_email => form.email,
             notes => form.notes,
             pending => needs_approval,
+            deposit_amount => deposit_amount.map(|v| format!("{:.2}", v)).unwrap_or_default(),
+            deposit_recipient_email => deposit_recipient_email.unwrap_or_default(),
+            cancellation_policy => cancellation_policy.unwrap_or_default(),
+            vendor_business_name => vendor_biz_name.unwrap_or_default(),
+            vendor_address => vendor_addr_formatted.unwrap_or_default(),
+            vendor_phone => vendor_phone_val.unwrap_or_default(),
+            vendor_tax_number => vendor_tax_val.unwrap_or_default(),
+            vendor_prices_include_tax => vendor_prices_include_tax_val,
             additional_attendees => additional_attendees,
             ics_url => format!("/booking/ics/{}", cancel_token),
             cancel_notice_min => cancel_notice_min,
@@ -34933,6 +35438,37 @@ mod tests {
         assert_eq!(parse_optional_day_count("14"), Some(14));
         assert_eq!(parse_optional_day_count("-1"), None);
         assert_eq!(parse_optional_day_count("abc"), None);
+    }
+
+    #[test]
+    fn test_canadian_provinces() {
+        assert!(is_valid_canadian_province("ON"));
+        assert!(is_valid_canadian_province("qc"));
+        assert!(is_valid_canadian_province("BC"));
+        assert!(is_valid_canadian_province("NU"));
+        assert!(!is_valid_canadian_province("NY"));
+        assert!(!is_valid_canadian_province("CA"));
+        assert!(!is_valid_canadian_province(""));
+    }
+
+    #[test]
+    fn test_canadian_postal_code_formatting() {
+        assert_eq!(format_canadian_postal_code("M5V2H1").unwrap(), "M5V 2H1");
+        assert_eq!(format_canadian_postal_code("m5v 2h1").unwrap(), "M5V 2H1");
+        assert_eq!(format_canadian_postal_code("k1a-0b1").unwrap(), "K1A 0B1");
+        assert!(format_canadian_postal_code("12345").is_err());
+        assert!(format_canadian_postal_code("MMV 2H1").is_err());
+        assert!(format_canadian_postal_code("M5V 211").is_err());
+    }
+
+    #[test]
+    fn test_canadian_phone_formatting() {
+        assert_eq!(format_canadian_phone("4165550199").unwrap(), "+1 (416) 555-0199");
+        assert_eq!(format_canadian_phone("14165550199").unwrap(), "+1 (416) 555-0199");
+        assert_eq!(format_canadian_phone("+1 (416) 555-0199").unwrap(), "+1 (416) 555-0199");
+        assert_eq!(format_canadian_phone("416-555-0199").unwrap(), "+1 (416) 555-0199");
+        assert!(format_canadian_phone("5550199").is_err());
+        assert!(format_canadian_phone("214165550199").is_err());
     }
     include!("booking_time_tests.rs");
 }

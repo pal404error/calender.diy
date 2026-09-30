@@ -605,9 +605,11 @@ mod tests {
         for path in template_files() {
             let name = path
                 .strip_prefix("templates/")
+                .or_else(|_| path.strip_prefix("templates\\"))
+                .or_else(|_| path.strip_prefix("templates"))
                 .expect("template path")
                 .to_string_lossy()
-                .to_string();
+                .replace('\\', "/");
             env.get_template(&name)
                 .unwrap_or_else(|e| panic!("{name} failed to load: {e}"));
         }
@@ -752,11 +754,13 @@ mod tests {
             ("pt", &["one", "other"]),
             ("et", &["one", "other"]),
         ];
-        let plural_keys: Vec<&str> = SUPPORTED_LANGS
+        let en_src = SUPPORTED_LANGS
             .iter()
             .find(|(c, _, _)| *c == "en")
             .map(|(_, _, src)| *src)
-            .unwrap_or("")
+            .unwrap_or("");
+        let en_normalized = en_src.replace("\r\n", "\n");
+        let plural_keys: Vec<&str> = en_normalized
             .split("\n\n")
             .filter(|block| block.contains(" ->"))
             .filter_map(|block| block.lines().next()?.split(" =").next())
@@ -773,8 +777,9 @@ mod tests {
                 .find(|(c, _, _)| c == lang)
                 .map(|(_, _, src)| *src)
                 .unwrap_or("");
+            let normalized = src.replace("\r\n", "\n");
             for key in &plural_keys {
-                let Some(block) = src
+                let Some(block) = normalized
                     .split("\n\n")
                     .find(|b| b.starts_with(&format!("{key} =")))
                 else {

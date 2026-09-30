@@ -36,6 +36,27 @@
     <strong>{{ date_label }}</strong> &middot; <span class="book-time" data-time="{{ time_start }}">{{ time_start }}</span> – <span class="book-time" data-time="{{ time_end }}">{{ time_end }}</span>
   </div>
 
+  {% if deposit_amount is defined and deposit_amount and deposit_recipient_email is defined and deposit_recipient_email %}
+  <div style="background: var(--accent-subtle, #eff6ff); border: 1px solid var(--accent-border, #bfdbfe); border-radius: var(--radius); padding: 0.875rem 1rem; margin-top: 1rem; margin-bottom: 0.5rem;">
+    <div style="font-weight: 600; color: var(--accent, #1e40af); font-size: 0.925rem; margin-bottom: 0.25rem;">Interac e-Transfer Deposit Required</div>
+    <div style="font-size: 0.875rem; color: var(--text);">
+      A deposit of <strong>${{ deposit_amount }} CAD</strong> via Interac e-Transfer to <strong>{{ deposit_recipient_email }}</strong> is required to confirm this booking.
+    </div>
+  </div>
+  {% endif %}
+
+  {% if cancellation_policy is defined and cancellation_policy %}
+  <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem 0.75rem; background: var(--surface-hover); border-radius: var(--radius); border: 1px solid var(--border);">
+    <strong>Cancellation Policy:</strong> {{ cancellation_policy }}
+  </div>
+  {% endif %}
+
+  {% if vendor_tax_number is defined and vendor_tax_number %}
+  <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; margin-bottom: 0.75rem;">
+    GST/HST: {{ vendor_tax_number }}{% if vendor_prices_include_tax %} &middot; Prices include GST/HST{% endif %}
+  </div>
+  {% endif %}
+
   {% if error %}
     <div class="error">{{ error }}</div>
   {% endif %}

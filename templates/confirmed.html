@@ -23,6 +23,20 @@
     <h1>{{ t("confirmed-heading-booked") }}</h1>
     <p class="subtitle">{{ t("confirmed-subtitle-booked", email=guest_email) }}</p>
   {% endif %}
+
+  {% if deposit_amount is defined and deposit_amount and deposit_recipient_email is defined and deposit_recipient_email %}
+  <div style="background: var(--accent-subtle, #eff6ff); border: 1px solid var(--accent-border, #bfdbfe); border-radius: var(--radius); padding: 1.125rem 1.25rem; margin-top: 1.25rem; text-align: left;">
+    <div style="font-weight: 700; color: var(--accent, #1e40af); font-size: 0.975rem; margin-bottom: 0.35rem;">
+      Interac e-Transfer Deposit Instructions
+    </div>
+    <p style="color: var(--text); font-size: 0.925rem; margin: 0 0 0.5rem 0;">
+      Send a <strong>${{ deposit_amount }} CAD</strong> deposit via Interac e-Transfer to <a href="mailto:{{ deposit_recipient_email }}" style="font-weight: 600; color: var(--accent); text-decoration: underline;">{{ deposit_recipient_email }}</a> to confirm.
+    </p>
+    <p style="color: var(--text-muted); font-size: 0.825rem; margin: 0;">
+      The vendor will confirm your appointment upon receipt of the deposit.
+    </p>
+  </div>
+  {% endif %}
 </div>
 
 <div class="card">
@@ -30,11 +44,26 @@
   <div class="detail"><strong>{{ t("confirmed-detail-date") }}</strong> {{ date_label }}</div>
   <div class="detail"><strong>{{ t("confirmed-detail-time") }}</strong> <span class="book-time" data-time="{{ time_start }}">{{ time_start }}</span> – <span class="book-time" data-time="{{ time_end }}">{{ time_end }}</span></div>
   <div class="detail"><strong>{{ t("confirmed-detail-with") }}</strong> {{ host_name }}</div>
+  {% if vendor_business_name is defined and vendor_business_name %}
+    <div class="detail"><strong>Business:</strong> {{ vendor_business_name }}</div>
+  {% endif %}
+  {% if vendor_address is defined and vendor_address %}
+    <div class="detail"><strong>Address:</strong> {{ vendor_address }}</div>
+  {% endif %}
+  {% if vendor_phone is defined and vendor_phone %}
+    <div class="detail"><strong>Phone:</strong> {{ vendor_phone }}</div>
+  {% endif %}
+  {% if vendor_tax_number is defined and vendor_tax_number %}
+    <div class="detail"><strong>GST/HST:</strong> {{ vendor_tax_number }}{% if vendor_prices_include_tax %} (Prices include GST/HST){% endif %}</div>
+  {% endif %}
   {% if location_value and not pending %}
     <div class="detail"><strong>{{ t("confirmed-detail-location") }}</strong> {% if (location_type == "link" or location_type == "jitsi_auto" or location_type == "webhook_auto" or location_type == "google_meet") and (location_value is startingwith("https://") or location_value is startingwith("http://")) %}<a href="{{ location_value }}" target="_blank" style="color: var(--accent); text-decoration: none;">{{ location_value }}</a>{% else %}{{ location_value }}{% endif %}</div>
   {% endif %}
   {% if notes %}
     <div class="detail"><strong>{{ t("confirmed-detail-notes") }}</strong> {{ notes }}</div>
+  {% endif %}
+  {% if cancellation_policy is defined and cancellation_policy %}
+    <div class="detail" style="border-top: 1px solid var(--border); padding-top: 0.75rem; margin-top: 0.75rem;"><strong>Cancellation Policy:</strong><br><span style="color: var(--text-secondary); font-size: 0.875rem; white-space: pre-line;">{{ cancellation_policy }}</span></div>
   {% endif %}
   {% if additional_attendees is defined and additional_attendees %}
     <div class="detail"><strong>{{ t("confirmed-detail-additional-guests") }}</strong> {{ additional_attendees | join(", ") }}</div>

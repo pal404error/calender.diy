@@ -32,6 +32,20 @@ pub struct User {
     pub avatar_path: Option<String>,
     pub allow_dynamic_group: bool,
     pub language: Option<String>,
+    #[sqlx(default)]
+    pub business_name: Option<String>,
+    #[sqlx(default)]
+    pub street_address: Option<String>,
+    #[sqlx(default)]
+    pub province: Option<String>,
+    #[sqlx(default)]
+    pub postal_code: Option<String>,
+    #[sqlx(default)]
+    pub phone: Option<String>,
+    #[sqlx(default)]
+    pub tax_number: Option<String>,
+    #[sqlx(default)]
+    pub prices_include_tax: bool,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
@@ -149,6 +163,12 @@ pub struct EventType {
     /// in addition to email. Defaults to false so existing event types are
     /// unaffected. The gateway used is instance-wide (see `sms_config`).
     pub sms_notifications_enabled: bool,
+    #[sqlx(default)]
+    pub deposit_amount: Option<f64>,
+    #[sqlx(default)]
+    pub deposit_recipient_email: Option<String>,
+    #[sqlx(default)]
+    pub cancellation_policy: Option<String>,
 }
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
