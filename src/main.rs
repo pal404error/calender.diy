@@ -90,7 +90,7 @@ enum Commands {
     /// Start the web booking server
     Serve {
         /// Port to listen on
-        #[arg(long, default_value = "3000")]
+        #[arg(long, env = "PORT", default_value = "3000")]
         port: u16,
         /// Address to bind to (use 0.0.0.0 to listen on all interfaces)
         #[arg(long, default_value = "127.0.0.1")]

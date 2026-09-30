@@ -32,4 +32,4 @@ ENV CALRS_DATA_DIR=/var/lib/calrs
 EXPOSE 3000
 
 ENTRYPOINT ["calrs"]
-CMD ["serve", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["serve", "--host", "0.0.0.0"]

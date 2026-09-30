@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: truenorthbookings
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: CALRS_BASE_URL
+        sync: false
+      - key: CALRS_SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: CALRS_SMTP_PORT
+        value: 587
+      - key: CALRS_SMTP_TLS_MODE
+        value: starttls
+      - key: CALRS_SMTP_FROM_EMAIL
+        value: support@truenorthbookings.ca
+      - key: CALRS_SMTP_FROM_NAME
+        value: TrueNorth Bookings
