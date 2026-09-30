@@ -13,7 +13,7 @@ INSERT OR REPLACE INTO users (
     'admin@truenorth.ca',
     'Olivier Tremblay',
     'America/Toronto',
-    'pbkdf2$100000$d4235c57e43f256525fac4a7fbeedcf8$8742e6bf9a084ceb60c5a1727f7af42c0d2f7463a817d502f905e1e0aaa38546',
+    'pbkdf2$100000$9dc0bcfa67f3c5a30b1caab63bd29e47$d24260c7fabf12312aba33c2400ca301c9b08138169f86013be8c3e5e386b40a',
     'admin',
     'local',
     1,
