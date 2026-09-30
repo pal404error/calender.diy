@@ -108,8 +108,8 @@ export async function sendBrevoEmail(
   }
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const apiKey = env.BREVO_API_KEY;
-  const senderName = env.BREVO_SENDER_NAME || 'TrueNorth Bookings';
-  const senderEmail = env.BREVO_SENDER_EMAIL || 'bookings@truenorth.ca';
+  const senderName = env.BREVO_SENDER_NAME || 'Bookings';
+  const senderEmail = env.BREVO_SENDER_EMAIL || 'notifications@calender.diy';
 
   if (!apiKey || apiKey === 'YOUR_BREVO_API_KEY') {
     console.log('[Brevo Mock Email Sent]:', {
@@ -204,10 +204,6 @@ export async function sendBookingConfirmationEmail(
         <a href="${details.cancelUrl}" style="display: inline-block; padding: 10px 18px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">Need to Cancel?</a>
       </div>
 
-      <hr style="margin: 28px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;">
-      <p style="font-size: 12px; color: #6b7280; text-align: center; margin: 0;">
-        Made in Canada 🇨🇦 · Powered by calrs (AGPL-3.0) — <a href="https://github.com/pal404error/calender.diy" style="color: #6b7280;">source</a>
-      </p>
     </div>
   `;
 
@@ -219,7 +215,6 @@ Date: ${details.dateStr}
 Time: ${details.startTimeStr} - ${details.endTimeStr} (${details.guestTimezone})
 ${details.location ? `Location: ${details.location}\n` : ''}
 Cancel URL: ${details.cancelUrl}
-Made in Canada 🇨🇦
   `.trim();
 
   await sendBrevoEmail(env, {
@@ -272,11 +267,6 @@ export async function sendPendingDepositEmail(
           <strong>Cancellation Policy:</strong><br>${details.cancellationPolicy}
         </div>
       ` : ''}
-
-      <hr style="margin: 28px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;">
-      <p style="font-size: 12px; color: #6b7280; text-align: center; margin: 0;">
-        Made in Canada 🇨🇦 · Powered by calrs (AGPL-3.0) — <a href="https://github.com/pal404error/calender.diy" style="color: #6b7280;">source</a>
-      </p>
     </div>
   `;
 
@@ -286,7 +276,6 @@ Deposit Amount: ${depositStr}
 Send To: ${recipient}
 Memo: Ref: ${details.bookingReference} (${details.guestName})
 Date: ${details.dateStr} at ${details.startTimeStr} (${details.guestTimezone})
-Made in Canada 🇨🇦
   `.trim();
 
   await sendBrevoEmail(env, {
@@ -315,10 +304,6 @@ export async function sendCancellationEmail(
       <p style="font-size: 15px; line-height: 1.5;">Your booking for <strong>${details.eventTitle}</strong> on <strong>${details.dateStr} at ${details.startTimeStr}</strong> has been cancelled.</p>
       ${reason ? `<p style="font-size: 14px; background: #fef2f2; padding: 10px; border-radius: 4px; color: #991b1b;"><strong>Reason:</strong> ${reason}</p>` : ''}
       
-      <hr style="margin: 28px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;">
-      <p style="font-size: 12px; color: #6b7280; text-align: center; margin: 0;">
-        Made in Canada 🇨🇦 · Powered by calrs (AGPL-3.0) — <a href="https://github.com/pal404error/calender.diy" style="color: #6b7280;">source</a>
-      </p>
     </div>
   `;
 

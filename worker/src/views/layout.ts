@@ -1,4 +1,4 @@
-// Base HTML Layout with Canadian White-Label Branding & AGPL-3.0 Compliance
+// Base HTML Layout - Clean, minimalist Canadian styling
 
 export interface LayoutOptions {
   title?: string;
@@ -9,7 +9,7 @@ export interface LayoutOptions {
 
 export function htmlLayout(options: LayoutOptions): string {
   const brand = options.brandName || 'TrueNorth Bookings';
-  const title = options.title ? `${options.title} | ${brand}` : `${brand} — Made in Canada 🇨🇦`;
+  const title = options.title ? `${options.title} | ${brand}` : brand;
 
   const navLinks = options.user
     ? `
@@ -17,8 +17,8 @@ export function htmlLayout(options: LayoutOptions): string {
         <a href="/dashboard" class="text-gray-700 hover:text-red-600 transition">Dashboard</a>
         <a href="/dashboard/bookings" class="text-gray-700 hover:text-red-600 transition">Bookings</a>
         <a href="/dashboard/event-types" class="text-gray-700 hover:text-red-600 transition">Services</a>
-        <a href="/dashboard/settings" class="text-gray-700 hover:text-red-600 transition">Profile & Tax</a>
-        ${options.user.username ? `<a href="/u/${options.user.username}" target="_blank" class="text-red-600 hover:underline">View Live Page ↗</a>` : ''}
+        <a href="/dashboard/settings" class="text-gray-700 hover:text-red-600 transition">Settings</a>
+        ${options.user.username ? `<a href="/u/${options.user.username}" target="_blank" class="text-red-600 hover:underline text-xs">View Live ↗</a>` : ''}
         <form action="/auth/logout" method="POST" class="inline m-0">
           <button type="submit" class="text-gray-500 hover:text-red-600 text-xs px-2.5 py-1 border border-gray-300 rounded hover:border-red-400 transition">Log Out</button>
         </form>
@@ -26,7 +26,7 @@ export function htmlLayout(options: LayoutOptions): string {
     `
     : `
       <div class="flex items-center gap-4 text-sm">
-        <a href="/auth/login" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium text-xs shadow-sm transition">Vendor Login</a>
+        <a href="/auth/login" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium text-xs shadow-sm transition">Sign In</a>
       </div>
     `;
 
@@ -45,17 +45,11 @@ export function htmlLayout(options: LayoutOptions): string {
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col antialiased">
-  <!-- Top Canadian Banner -->
-  <div class="bg-red-700 text-white text-xs py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-1.5">
-    <span>🇨🇦</span>
-    <span>TrueNorth Bookings · Made in Canada · Built for Canadian Independent Vendors</span>
-  </div>
-
   <!-- Header -->
   <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2.5 font-bold text-gray-900 text-lg hover:text-red-600 transition">
-        <span class="text-2xl">🍁</span>
+      <a href="/" class="flex items-center gap-2 font-bold text-gray-900 text-lg hover:text-red-600 transition">
+        <span>🍁</span>
         <span>${brand}</span>
       </a>
       <nav>${navLinks}</nav>
@@ -67,12 +61,9 @@ export function htmlLayout(options: LayoutOptions): string {
     ${options.children}
   </main>
 
-  <!-- AGPL-3.0 Footer -->
-  <footer class="bg-white border-t border-gray-200 mt-auto py-6">
-    <div class="max-w-6xl mx-auto px-4 text-center text-xs text-gray-500 space-y-1">
-      <p>Made in Canada 🇨🇦 · Powered by calrs (AGPL-3.0) — <a href="https://github.com/pal404error/calender.diy" target="_blank" rel="noopener" class="underline hover:text-red-600">source</a></p>
-      <p class="text-gray-400">All prices in Canadian Dollars ($ CAD). Secure serverless infrastructure on Cloudflare Workers + D1.</p>
-    </div>
+  <!-- Subtle Footer -->
+  <footer class="mt-auto py-4 text-center text-[11px] text-gray-400">
+    <a href="https://github.com/pal404error/calender.diy" target="_blank" rel="noopener" class="hover:underline">source</a>
   </footer>
 </body>
 </html>`;

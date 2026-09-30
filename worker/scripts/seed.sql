@@ -3,14 +3,14 @@
 -- ====================================================================
 
 -- 1. Insert Initial Vendor User (Admin)
--- Login: admin@truenorth.ca / AdminPassword2026!
+-- Login: admin / AdminPassword2026!
 INSERT OR REPLACE INTO users (
     id, email, name, timezone, password_hash, role, auth_provider,
     enabled, username, title, bio, language,
     business_name, street_address, province, postal_code, phone, tax_number, prices_include_tax
 ) VALUES (
     'usr_canadian_admin_01',
-    'admin@truenorth.ca',
+    'admin@calender.diy',
     'Olivier Tremblay',
     'America/Toronto',
     'pbkdf2$100000$9dc0bcfa67f3c5a30b1caab63bd29e47$d24260c7fabf12312aba33c2400ca301c9b08138169f86013be8c3e5e386b40a',
@@ -19,7 +19,7 @@ INSERT OR REPLACE INTO users (
     1,
     'admin',
     'Master Specialist & Consultant',
-    'Local Canadian consulting and on-site trade service. Proudly serving Toronto, the GTA, and across Ontario. Made in Canada 🇨🇦',
+    'Local Canadian consulting and on-site trade service. Proudly serving Toronto, the GTA, and across Ontario.',
     'en',
     'TrueNorth Canadian Wellness & Trades',
     '100 King Street West, Suite 5600',
@@ -36,7 +36,7 @@ INSERT OR REPLACE INTO accounts (
 ) VALUES (
     'acc_canadian_admin_01',
     'TrueNorth Canadian Wellness & Trades',
-    'admin@truenorth.ca',
+    'admin@calender.diy',
     'America/Toronto',
     'usr_canadian_admin_01'
 );
@@ -88,7 +88,7 @@ INSERT OR REPLACE INTO event_types (
     'public',
     'usr_canadian_admin_01',
     50.00,
-    'payments@truenorth.ca',
+    'payments@calender.diy',
     'Interac deposits are 100% refundable if cancellation is requested at least 24 hours prior to appointment.'
 );
 

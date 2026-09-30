@@ -25,13 +25,12 @@ export function renderLogin(error?: string): string {
       <form action="/auth/login" method="POST" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1">Email or Username</label>
-          <input type="text" name="email" required placeholder="admin or admin@truenorth.ca" class="w-full text-sm border-gray-300 rounded-md p-2 border focus:ring-red-500 focus:border-red-500 shadow-sm" />
+          <input type="text" name="email" required placeholder="Username or email" class="w-full text-sm border-gray-300 rounded-md p-2 border focus:ring-red-500 focus:border-red-500 shadow-sm" />
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1">Password</label>
           <input type="password" name="password" required placeholder="••••••••" class="w-full text-sm border-gray-300 rounded-md p-2 border focus:ring-red-500 focus:border-red-500 shadow-sm" />
-          <span class="text-[11px] text-gray-400 mt-1 block">Default: <code>AdminPassword2026!</code> or <code>admin</code></span>
         </div>
 
         <button type="submit" class="w-full py-2.5 px-4 bg-red-600 hover:bg-red-700 text-white rounded-md font-semibold text-sm shadow transition">

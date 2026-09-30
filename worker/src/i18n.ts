@@ -104,7 +104,7 @@ export function formatMoneyCAD(amount: number): string {
 export const TRANSLATIONS = {
   en: {
     brand_tagline: 'Made in Canada 🇨🇦',
-    footer_text: 'Made in Canada 🇨🇦 · Powered by calrs (AGPL-3.0) — ',
+    footer_text: '',
     footer_source: 'source',
     select_slot: 'Select Date & Time',
     your_details: 'Enter Details',
@@ -117,7 +117,7 @@ export const TRANSLATIONS = {
   },
   fr: {
     brand_tagline: 'Fait au Canada 🇨🇦',
-    footer_text: 'Fait au Canada 🇨🇦 · Propulsé par calrs (AGPL-3.0) — ',
+    footer_text: '',
     footer_source: 'code source',
     select_slot: 'Choisir la date et l\'heure',
     your_details: 'Vos informations',

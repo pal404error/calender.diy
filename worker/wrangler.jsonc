@@ -21,6 +21,6 @@
     "CURRENCY": "CAD",
     "APP_URL": "https://truenorth-bookings.grew-anything-barn.workers.dev",
     "BREVO_SENDER_NAME": "TrueNorth Bookings",
-    "BREVO_SENDER_EMAIL": "bookings@truenorth.ca"
+    "BREVO_SENDER_EMAIL": "notifications@calender.diy"
   }
 }
