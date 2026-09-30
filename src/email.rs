@@ -296,7 +296,7 @@ fn render_html_email_with_actions(
     <!-- Footer -->
     <tr><td style="padding:16px 28px;border-top:1px solid #f0f0f3;text-align:center;">
       <span style="font-size:12px;color:#9ca3af;">Sent by </span>
-      <a href="https://github.com/pal404error/calrs" style="font-size:12px;color:#6b7280;font-weight:600;text-decoration:none;">TrueNorth Bookings</a>
+      <a href="https://github.com/pal404error/calender.diy" style="font-size:12px;color:#6b7280;font-weight:600;text-decoration:none;">TrueNorth Bookings</a>
     </td></tr>
   </table>
 </td></tr>
@@ -6489,7 +6489,7 @@ mod tests {
     #[test]
     fn html_email_has_calrs_footer_link() {
         let html = render_html_email("Hi,", "Test", "#000", &[], None);
-        assert!(html.contains("https://github.com/pal404error/calrs"));
+        assert!(html.contains("https://github.com/pal404error/calender.diy"));
         assert!(html.contains("TrueNorth Bookings"));
     }
 
