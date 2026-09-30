@@ -1,0 +1,11 @@
+{
+  "name": "truenorth-bookings-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm --prefix worker test",
+    "deploy": "npm --prefix worker run deploy",
+    "dev": "npm --prefix worker run dev",
+    "typecheck": "npm --prefix worker run typecheck"
+  }
+}

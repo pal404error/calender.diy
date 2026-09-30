@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "truenorth-bookings",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "truenorth-db",
+      "database_id": "5da030fe-c357-4a0a-9793-b8260c4ee4d8",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "assets": {
+    "directory": "./public"
+  },
+  "vars": {
+    "BRAND_NAME": "TrueNorth Bookings",
+    "BRAND_TAGLINE": "Made in Canada 🇨🇦",
+    "CURRENCY": "CAD",
+    "APP_URL": "https://truenorth-bookings.grew-anything-barn.workers.dev",
+    "BREVO_SENDER_NAME": "TrueNorth Bookings",
+    "BREVO_SENDER_EMAIL": "bookings@truenorth.ca"
+  }
+}

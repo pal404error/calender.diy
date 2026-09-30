@@ -1,0 +1,23 @@
+{
+  "name": "truenorth-bookings",
+  "version": "1.0.0",
+  "description": "TrueNorth Bookings - Canadian White-Label Scheduling on Cloudflare Workers + D1",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241004.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2",
+    "wrangler": "^3.80.0"
+  }
+}

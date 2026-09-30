@@ -5,3 +5,10 @@
 .env
 .claude/
 docs/book/
+node_modules/
+worker/node_modules/
+.dev.vars
+worker/.dev.vars
+.wrangler/
+worker/.wrangler/
+cookies.txt
